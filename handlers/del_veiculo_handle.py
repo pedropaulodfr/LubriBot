@@ -1,8 +1,7 @@
-from telebot.types import ReplyKeyboardRemove, ForceReply
 from repository.models import Usuario, Manutencao, Veiculo, _Session
 from keyboards.menu_principal_keyboard import menu_principal
 from keyboards.veiculos_keyboard import veiculos_keyboard
-from services.veiculos_service import get_veiculo_by_placa, get_veiculos_by_usuario
+from services.veiculos_service import get_veiculos_by_usuario
 
 
 session = _Session()

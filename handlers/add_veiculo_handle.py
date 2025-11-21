@@ -1,6 +1,5 @@
 from telebot.types import ReplyKeyboardRemove, ForceReply
 from repository.models import Usuario, Veiculo, _Session
-from services.usuarios_service import add_usuario
 from keyboards.tipos_veiculos_keyboard import tipos_veiculos_keyboard
 from keyboards.menu_principal_keyboard import menu_principal
 

@@ -1,5 +1,5 @@
 from keyboards.menu_principal_keyboard import menu_principal
-from repository.models import Usuario, Veiculo, _Session
+from repository.models import Usuario, _Session
 
 session = _Session()
 

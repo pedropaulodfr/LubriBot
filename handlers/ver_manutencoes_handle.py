@@ -1,4 +1,4 @@
-from telebot.types import ReplyKeyboardRemove, ForceReply
+from telebot.types import ReplyKeyboardRemove
 from repository.models import Usuario, ManutencaoServico, Servico, _Session
 from keyboards.menu_principal_keyboard import menu_principal
 from services.manutencoes_service import get_manutencoes_by_usuario

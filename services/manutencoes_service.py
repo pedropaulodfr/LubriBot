@@ -1,0 +1,9 @@
+from repository.models import Manutencao, Veiculo, Usuario,  ManutencaoServico, Servico, _Session
+
+def get_manutencoes_by_usuario(usuario_id):
+    session = _Session()
+    try:
+        manutencoes = session.query(Manutencao).join(ManutencaoServico).join(Veiculo).join(Usuario).filter(Usuario.id == usuario_id).all()
+        return manutencoes
+    finally:
+        session.close()

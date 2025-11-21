@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, Float, String, ForeignKey, Date
+from sqlalchemy import create_engine, Column, Integer, Float, String, ForeignKey, Date, Text, Boolean
 from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 from config import STRING_CONNECTION
 
@@ -20,6 +20,17 @@ class Usuario(Base):
     email = Column(String(50))
     telefone = Column(String(11))
     status = Column(String(8))
+
+
+class UsuarioParametro(Base):
+    __tablename__ = 'usuarioparametros'
+    
+    id = Column(Integer, primary_key=True)
+    usuario_id = Column(Integer, ForeignKey('usuarios.id'))
+    receberNotificacoes = Column(Boolean)
+    diasNotificacao = Column(Integer)
+
+    usuario = relationship("Usuario", backref="parametros", lazy='subquery')
 
 class Veiculo(Base):
     __tablename__ = 'veiculos'
@@ -85,5 +96,23 @@ class ServicoProduto(Base):
     servico = relationship("Servico", backref="servicoprodutos", lazy='subquery')
     produto = relationship("Produto", backref="servicoprodutos", lazy='subquery')
 
+class Notificacao(Base):
+    __tablename__ = 'notificacoes'
+    
+    id = Column(Integer, primary_key=True)
+    dataNotificacao = Column(Date)
+    tipoNotificacao = Column(String(20))
+    usuario_id = Column(Integer, ForeignKey('usuarios.id'))
+    servico_id = Column(Integer, ForeignKey('servicos.id'))
+    manutencao_id = Column(Integer, ForeignKey('manutencoes.id'))
+    veiculo_id = Column(Integer, ForeignKey('veiculos.id'))
+    titulo = Column(String(100))
+    conteudo = Column(Text)
+    status = Column(String(8))
+
+    usuario = relationship("Usuario", backref="notificacoes", lazy='subquery')
+    servico = relationship("Servico", backref="notificacoes", lazy='subquery')
+    veiculo = relationship("Veiculo", backref="notificacoes", lazy='subquery')
+    manutencao = relationship("Manutencao", backref="notificacoes", lazy='subquery')
 
 Base.metadata.create_all(engine)    

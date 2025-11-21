@@ -1,4 +1,4 @@
-from telebot.types import ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
+from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 
 def menu_principal():
     markup = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -6,5 +6,6 @@ def menu_principal():
         KeyboardButton("Registrar Manutenção"), 
         KeyboardButton("Ver Manutenções"),
         KeyboardButton("Gerenciar Veículos"),
-        )
+        KeyboardButton("⚙️ Configurações"),
+    )   
     return markup

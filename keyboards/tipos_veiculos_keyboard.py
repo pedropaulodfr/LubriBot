@@ -1,4 +1,4 @@
-from telebot.types import ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
+from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 
 def tipos_veiculos_keyboard():
     markup = ReplyKeyboardMarkup(resize_keyboard=True)

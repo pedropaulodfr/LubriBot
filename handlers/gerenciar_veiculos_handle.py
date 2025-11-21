@@ -1,4 +1,3 @@
-from telebot.types import ReplyKeyboardRemove, ForceReply
 from keyboards.veiculos_keyboard import gerenciar_veiculos_keyboard
 
 def gerenciar_veiculos_handle(bot):

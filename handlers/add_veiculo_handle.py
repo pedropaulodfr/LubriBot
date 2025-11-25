@@ -19,6 +19,7 @@ def add_veiculo_handle(bot):
 
         veiculo.usuario_id = usuario.id
         veiculo.status = "Ativo"
+        
 
         bot.send_message(message.chat.id, "Informe a placa:", reply_markup=ForceReply())
         bot.register_next_step_handler(message, receber_placa)
@@ -32,7 +33,7 @@ def add_veiculo_handle(bot):
             bot.register_next_step_handler(message, receber_placa)
             return
         
-        existeVeiculo = session.query(Veiculo).filter(Veiculo.placa == placa.upper() and Veiculo.usuario_id == usuario.id).first()
+        existeVeiculo = session.query(Veiculo).filter(Veiculo.placa == placa.upper(), Veiculo.usuario_id == veiculo.usuario_id, Veiculo.status != "Deletado").first()
         if (existeVeiculo):
             bot.send_message(message.chat.id, "❌ Placa já cadastrada! Por favor, envie uma placa diferente.", reply_markup=ForceReply())
             bot.register_next_step_handler(message, receber_placa)
@@ -46,6 +47,11 @@ def add_veiculo_handle(bot):
 
     def receber_tipo(message):
         tipo = message.text
+
+        if (tipo == "Cancelar"):
+            bot.send_message(message.chat.id, "Operação de adição de veículo cancelada.", reply_markup=menu_principal())
+            return
+
         veiculo.tipo = tipo
 
         bot.send_message(message.chat.id, "Informe a marca:", reply_markup=ForceReply())

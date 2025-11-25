@@ -13,4 +13,6 @@ def veiculos_keyboard(veiculos = []):
     for veiculo in veiculos:
         markup.add(KeyboardButton(f"{veiculo.placa[:3]}-{veiculo.placa[-4:]} - {veiculo.tipo} {veiculo.fabricante} {veiculo.modelo} {veiculo.cor} ({veiculo.anoModelo})"))
     
+    markup.add(KeyboardButton("Cancelar"))
+
     return markup

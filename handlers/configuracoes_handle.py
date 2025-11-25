@@ -42,7 +42,7 @@ def configuracoes_receber_notificacoes(bot):
 def configuracoes_dias_notificacao(bot):
     @bot.message_handler(func=lambda message: message.text == "Configurar Periodo de Notificacao")
     def dias_notificacao(message):
-        bot.send_message(message.chat.id, "Com quantos dias você deseja ser notificado?", reply_markup=ForceReply())
+        bot.send_message(message.chat.id, "Com quantos dias de antecedência deseja ser notificado?", reply_markup=ForceReply())
         bot.register_next_step_handler(message, receber_dias)
 
     def receber_dias(message):

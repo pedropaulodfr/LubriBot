@@ -22,7 +22,7 @@ def ver_veiculo_handle(bot):
 
             for veiculo in veiculos:
                 info_veiculo = (
-                    f"{'🏍️' if veiculo.tipo == 'Motocicleta' else '🚗'} Tipo: {veiculo.tipo}\n"
+                    f"{'🏍️' if veiculo.tipo == 'Moto' else '🚗'} Tipo: {veiculo.tipo}\n"
                     f"🔖 Marca: {veiculo.fabricante}\n"
                     f"🚘 Modelo: {veiculo.modelo}\n"
                     f"🪧 Placa: {veiculo.placa[:3]}-{veiculo.placa[-4:]}\n"

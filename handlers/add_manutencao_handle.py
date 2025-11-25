@@ -1,5 +1,5 @@
+import base64 as b64
 from datetime import datetime
-
 from telebot.types import ReplyKeyboardRemove, ForceReply
 from repository.models import Usuario, Manutencao, ManutencaoServico, Veiculo, _Session
 from services.veiculos_service import get_veiculos_by_usuario
@@ -7,6 +7,8 @@ from keyboards.menu_principal_keyboard import menu_principal
 from keyboards.markups_genericos_keyboard import markups_genericos_keyboard
 from keyboards.veiculos_keyboard import veiculos_keyboard
 from services.servicos_service import get_all_servicos, get_servico_by_descricao
+from utils.upload_file_async import upload
+
 
 session = _Session()
 manutencao = Manutencao()
@@ -107,8 +109,31 @@ def add_manutencao_handle(bot):
             bot.register_next_step_handler(message, receber_quilometragem)
             return
 
+        bot.send_message(message.chat.id, "Por favor, tire uma foto do painel mostrando a quilometragem:", reply_markup=ForceReply())
+        bot.register_next_step_handler(message, receber_foto)
+
+
+    def receber_foto(message):
+        if message.content_type != 'photo':
+            bot.send_message(message.chat.id, "❌ Por favor, envie uma foto válida.")
+            bot.register_next_step_handler(message, receber_foto)
+            return
+
+        foto_arquivo_id = message.photo[-1].file_id
+        manutencao.imagem = foto_arquivo_id
+
+        # Obtém informações sobre o arquivo (incluindo o file_path)
+        file_info = bot.get_file(foto_arquivo_id)
+        file_path = file_info.file_path
+
+        # Baixa o arquivo usando a API do Telegram
+        # bot.download_file retorna o conteúdo do arquivo em bytes
+        downloaded_file = bot.download_file(file_path)
+
+        upload(base64=b64.b64encode(downloaded_file).decode('utf-8'), tipo="imagens", filename=f"{foto_arquivo_id}.jpg")
+
         bot.send_message(message.chat.id, "Informe o custo do serviço (em R$):", reply_markup=ForceReply())
-        bot.register_next_step_handler(message, receber_custo)
+        bot.register_next_step_handler(message, receber_custo)  
 
 
     def receber_custo(message):

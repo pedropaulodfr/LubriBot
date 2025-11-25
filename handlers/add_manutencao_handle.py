@@ -42,6 +42,10 @@ def add_manutencao_handle(bot):
 
 
     def receber_veiculo(message):
+        if (message.text == "Cancelar"):
+            bot.send_message(message.chat.id, "Registro de manutenção cancelado.", reply_markup=menu_principal())
+            return
+        
         placa_selecionada = message.text.split(" - ")[0].replace("-", "")
         veiculo = session.query(Veiculo).filter(Veiculo.placa == placa_selecionada).first()
 

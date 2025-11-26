@@ -1,19 +1,19 @@
 import boto3
 from botocore.exceptions import NoCredentialsError
-from config import AWS
 import base64 as b64
 import uuid
 import os
+from dotenv import load_dotenv, find_dotenv
 
+# carrega .env (se existir)
+load_dotenv(find_dotenv())
 
-_config_aws = AWS if isinstance(AWS, dict) else {}
 AWS = {
-    "AccessKey": os.getenv("AccessKey") or _config_aws.get("AccessKey"),
-    "SecretKey": os.getenv("SecretKey") or _config_aws.get("SecretKey"),
-    "Region": os.getenv("Region") or _config_aws.get("Region"),
-    "BucketName": os.getenv("BucketName") or _config_aws.get("BucketName"),
+    "AccessKey": os.getenv("AWS_AccessKey"),
+    "SecretKey": os.getenv("AWS_SecretKey"),
+    "Region": os.getenv("AWS_Region"),
+    "BucketName": os.getenv("AWS_BUCAWS_BucketNameKET_NAME"),
 }
-
 
 def upload(base64, tipo, filename):
     try:

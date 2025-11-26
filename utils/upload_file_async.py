@@ -6,6 +6,15 @@ import uuid
 import os
 
 
+_config_aws = AWS if isinstance(AWS, dict) else {}
+AWS = {
+    "AccessKey": os.getenv("AccessKey") or _config_aws.get("AccessKey"),
+    "SecretKey": os.getenv("SecretKey") or _config_aws.get("SecretKey"),
+    "Region": os.getenv("Region") or _config_aws.get("Region"),
+    "BucketName": os.getenv("BucketName") or _config_aws.get("BucketName"),
+}
+
+
 def upload(base64, tipo, filename):
     try:
         # Configurações do AWS S3

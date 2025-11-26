@@ -2,7 +2,7 @@ import telebot
 import threading
 import time
 import os
-from config import TOKEN as CONFIG_TOKEN
+from dotenv import load_dotenv, find_dotenv
 from handlers.start_handle import start
 from handlers.add_manutencao_handle import add_manutencao_handle
 from handlers.add_veiculo_handle import add_veiculo_handle
@@ -13,7 +13,10 @@ from handlers.configuracoes_handle import configuracoes_handle, configuracoes_re
 from handlers.del_veiculo_handle import del_veiculo_handle
 from services.notificacoes_service import ProcessarNotificacoes, EnviaNotificacoes
 
-TOKEN = os.getenv('TOKEN', CONFIG_TOKEN)
+# carrega .env (se existir)
+load_dotenv(find_dotenv())
+
+TOKEN = os.getenv('TOKEN')
 bot = telebot.TeleBot(TOKEN)
 
 def tarefa_periodica():

@@ -1,9 +1,12 @@
 import os
 from sqlalchemy import create_engine, Column, Integer, Float, String, ForeignKey, Date, Text, Boolean
 from sqlalchemy.orm import sessionmaker, declarative_base, relationship
-from config import STRING_CONNECTION as DB_CONNECTION
+from dotenv import load_dotenv, find_dotenv
 
-STRING_CONNECTION = TOKEN = os.getenv('STRING_CONNECTION', DB_CONNECTION)
+# carrega .env (se existir)
+load_dotenv(find_dotenv())
+
+STRING_CONNECTION = TOKEN = os.getenv('STRING_CONNECTION')
 
 engine = create_engine(STRING_CONNECTION)
 Base = declarative_base()

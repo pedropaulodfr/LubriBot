@@ -4,6 +4,7 @@ import time
 import os
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 from dotenv import load_dotenv, find_dotenv
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 # Handlers
 from handlers.start_handle import start
@@ -47,9 +48,22 @@ def iniciar_tarefa_periodica():
 # -----------------------------
 # SERVIDOR HTTP (necessário no Render FREE)
 # -----------------------------
+class CustomHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == "/ping":
+            self.send_response(200)
+            self.send_header("Content-type", "application/json")
+            self.end_headers()
+            self.wfile.write(b'{"status": "ok", "message": "bot ativo"}')
+        else:   
+            self.send_response(404)
+            self.end_headers()
+            self.wfile.write(b"Not found")
+
+
 def start_server():
     port = int(os.getenv("PORT", 10000))  # Render define $PORT
-    server = HTTPServer(("0.0.0.0", port), SimpleHTTPRequestHandler)
+    server = HTTPServer(("0.0.0.0", port), CustomHandler)
     print(f"Servidor HTTP ativo na porta {port}")
     server.serve_forever()
 

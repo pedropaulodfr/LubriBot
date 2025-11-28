@@ -6,7 +6,7 @@ from services.manutencoes_service import get_manutencoes_by_usuario
 session = _Session()
 
 def ver_manutencao_handle(bot):
-    @bot.message_handler(func=lambda message: message.text == "Ver Manutenções")
+    @bot.message_handler(func=lambda message: message.text == "🔎 Ver Manutenções")
     def ver_manutencao(message):
         try:
             usuario = session.query(Usuario).filter(Usuario.telegram_id == message.from_user.id).first()
@@ -16,6 +16,10 @@ def ver_manutencao_handle(bot):
                 return
 
             manutencoes = get_manutencoes_by_usuario(usuario.id)
+
+            if (len(manutencoes) == 0):
+                bot.send_message(message.chat.id, f"⚠️ Você ainda não veículos com manutenções registradas!", reply_markup=menu_principal())
+                return
 
             bot.send_message(message.chat.id, f"{usuario.primeiroNome}, aqui estão as suas manutenções registradas:", reply_markup=ReplyKeyboardRemove())
 

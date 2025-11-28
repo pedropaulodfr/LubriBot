@@ -8,7 +8,7 @@ session = _Session()
 veiculo = Veiculo()
 
 def del_veiculo_handle(bot):
-    @bot.message_handler(func=lambda message: message.text == "Remover Veículo")
+    @bot.message_handler(func=lambda message: message.text == "➖ Remover Veículo")
     def del_veiculo(message):
         usuario = session.query(Usuario).filter(Usuario.telegram_id == message.from_user.id).first()
         

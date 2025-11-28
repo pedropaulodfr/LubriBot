@@ -18,7 +18,7 @@ servicos_disponiveis = get_all_servicos()
 
 
 def add_manutencao_handle(bot):
-    @bot.message_handler(func=lambda message: message.text == "Registrar Manutenção")
+    @bot.message_handler(func=lambda message: message.text == "🛠️ Registrar Manutenção")
     def add_manutencao(message):
         bot.send_message(message.chat.id,"Iniciando o processo de registro de manutenção. Por favor, envie os detalhes da manutenção.",reply_markup=ReplyKeyboardRemove())
         # Aqui você pode adicionar lógica adicional para processar a manutenção
@@ -44,7 +44,7 @@ def add_manutencao_handle(bot):
 
 
     def receber_veiculo(message):
-        if (message.text == "Cancelar"):
+        if (message.text == "❌ Cancelar"):
             bot.send_message(message.chat.id, "Registro de manutenção cancelado.", reply_markup=menu_principal())
             return
         

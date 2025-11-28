@@ -7,7 +7,7 @@ from services.veiculos_service import get_veiculos_by_usuario
 session = _Session()
 
 def ver_veiculo_handle(bot):
-    @bot.message_handler(func=lambda message: message.text == "Visualizar Veículos")
+    @bot.message_handler(func=lambda message: message.text == "🔎 Visualizar Veículos")
     def ver_veiculo(message):
         try:
             usuario = session.query(Usuario).filter(Usuario.telegram_id == message.from_user.id).first()
@@ -17,6 +17,10 @@ def ver_veiculo_handle(bot):
                 return
             
             veiculos = get_veiculos_by_usuario(usuario.id)
+
+            if(len(veiculos) == 0):
+                bot.send_message(message.chat.id, f"⚠️ Você ainda não possui veículos registrados!", reply_markup=menu_principal())
+                return
 
             bot.send_message(message.chat.id, f"{usuario.primeiroNome}, aqui estão os seus veículos cadastrados:", reply_markup=ReplyKeyboardRemove())
 

@@ -9,13 +9,19 @@ session = _Session()
 def configuracoes_handle(bot):
     @bot.message_handler(func=lambda message: message.text == "⚙️ Configurações")
     def configurar(message):
-
-        configuracoes_options = configuracoes_keyboard()
+        configuracoes_options = configuracoes_keyboard(message)
         bot.send_message(message.chat.id,"Escolha: ", reply_markup=configuracoes_options)
 
 
+def configuracoes_cancelar(bot):
+    @bot.message_handler(func=lambda message: message.text == "❌ Cancelar")
+    def cancelar_configuracao(message):
+        bot.send_message(message.chat.id, "Escolha uma opção: ", reply_markup=menu_principal())
+        return
+    
+
 def configuracoes_receber_notificacoes(bot):
-    @bot.message_handler(func=lambda message: message.text == "Ativar/Desativar Notificações")
+    @bot.message_handler(func=lambda message: message.text in ("🔔 Ativar Notificações", "🔕 Desativar Notificações"))
     def receber_notificacoes(message):
         usuario = session.query(Usuario).filter(Usuario.telegram_id == message.from_user.id).first()
         usuarioParametros = session.query(UsuarioParametro).filter(UsuarioParametro.usuario_id == usuario.id).first()
@@ -40,7 +46,7 @@ def configuracoes_receber_notificacoes(bot):
 
 
 def configuracoes_dias_notificacao(bot):
-    @bot.message_handler(func=lambda message: message.text == "Configurar Periodo de Notificacao")
+    @bot.message_handler(func=lambda message: message.text == "⏱️ Configurar Periodo de Notificação")
     def dias_notificacao(message):
         bot.send_message(message.chat.id, "Com quantos dias de antecedência deseja ser notificado?", reply_markup=ForceReply())
         bot.register_next_step_handler(message, receber_dias)

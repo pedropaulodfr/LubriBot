@@ -16,7 +16,8 @@ from handlers.gerenciar_veiculos_handle import gerenciar_veiculos_handle
 from handlers.configuracoes_handle import (
     configuracoes_handle,
     configuracoes_receber_notificacoes,
-    configuracoes_dias_notificacao
+    configuracoes_dias_notificacao,
+    configuracoes_cancelar
 )
 from handlers.del_veiculo_handle import del_veiculo_handle
 
@@ -25,7 +26,7 @@ from services.notificacoes_service import ProcessarNotificacoes, EnviaNotificaco
 # Carrega .env
 load_dotenv(find_dotenv())
 
-TOKEN = os.getenv('TOKEN')
+TOKEN = os.getenv('TOKEN') if os.getenv('AMBIENTE') == "PRODUÇÃO" else os.getenv('TOKEN_QA')
 bot = telebot.TeleBot(TOKEN)
 
 # -----------------------------
@@ -80,6 +81,7 @@ gerenciar_veiculos_handle(bot)
 configuracoes_handle(bot)
 configuracoes_receber_notificacoes(bot)
 configuracoes_dias_notificacao(bot)
+configuracoes_cancelar(bot)
 
 # -----------------------------
 # INÍCIO DO BOT

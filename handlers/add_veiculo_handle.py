@@ -8,7 +8,7 @@ veiculo = Veiculo()
 usuario = Usuario()
 
 def add_veiculo_handle(bot):
-    @bot.message_handler(func=lambda message: message.text == "Adicionar Veículo")
+    @bot.message_handler(func=lambda message: message.text == "➕ Adicionar Veículo")
     def add_veiculo(message):
         bot.send_message(message.chat.id,"Iniciando o processo de registro de veículo. Por favor, preencha as informações.", reply_markup=ReplyKeyboardRemove())
 

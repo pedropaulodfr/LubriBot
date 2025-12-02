@@ -120,7 +120,7 @@ def add_manutencao_handle(bot):
             return
 
         foto_arquivo_id = message.photo[-1].file_id
-        manutencao.imagem = foto_arquivo_id
+        manutencao.imagem = f"{foto_arquivo_id}.jpg"
 
         # Obtém informações sobre o arquivo (incluindo o file_path)
         file_info = bot.get_file(foto_arquivo_id)

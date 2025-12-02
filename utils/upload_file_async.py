@@ -12,7 +12,7 @@ AWS = {
     "AccessKey": os.getenv("AWS_AccessKey"),
     "SecretKey": os.getenv("AWS_SecretKey"),
     "Region": os.getenv("AWS_Region"),
-    "BucketName": os.getenv("AWS_BUCAWS_BucketNameKET_NAME"),
+    "BucketName": os.getenv("AWS_BucketName"),
 }
 
 def upload(base64, tipo, filename):

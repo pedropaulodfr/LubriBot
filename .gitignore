@@ -1,2 +1,10 @@
+# Ignorar arquivos de configuração sensíveis
 config.py
 .env
+
+# Ignorar pastas de cache do Python
+**/__pycache__/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd

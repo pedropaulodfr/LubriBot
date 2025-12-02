@@ -2,6 +2,7 @@ from telebot.types import ForceReply
 from repository.models import _Session, Usuario, UsuarioParametro
 from keyboards.configuracoes_keyboard import configuracoes_keyboard
 from keyboards.menu_principal_keyboard import menu_principal
+from services.usuarioparametros_service import get_parametros_usuario_by_telegram_id
 
 
 session = _Session()
@@ -48,6 +49,10 @@ def configuracoes_receber_notificacoes(bot):
 def configuracoes_dias_notificacao(bot):
     @bot.message_handler(func=lambda message: message.text == "⏱️ Configurar Periodo de Notificação")
     def dias_notificacao(message):
+        usuarioParametros = get_parametros_usuario_by_telegram_id( message.from_user.id)
+
+        if (usuarioParametros.diasNotificacao):
+            bot.send_message(message.chat.id, f"📌 Atualmente, você está sendo notificado com {usuarioParametros.diasNotificacao} dias de antecedência.",)
         bot.send_message(message.chat.id, "Com quantos dias de antecedência deseja ser notificado?", reply_markup=ForceReply())
         bot.register_next_step_handler(message, receber_dias)
 

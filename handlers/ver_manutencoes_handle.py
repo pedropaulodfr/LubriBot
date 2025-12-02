@@ -56,8 +56,6 @@ def ver_manutencao_handle(bot):
                 else:
                     bot.send_message(message.chat.id, info_manutencao) 
 
-            bot.send_message(message.chat.id, f"Escolha uma opção:", reply_markup=menu_principal())
-
         finally:
             session.close()
 

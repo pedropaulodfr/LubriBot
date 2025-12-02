@@ -1,9 +1,23 @@
-from telebot.types import ReplyKeyboardRemove
-from repository.models import Usuario, ManutencaoServico, Servico, _Session
+import os
+
+from telebot.types import ReplyKeyboardRemove,  InlineKeyboardMarkup, InlineKeyboardButton
+from repository.models import Usuario, Manutencao, ManutencaoServico, Servico, _Session
 from keyboards.menu_principal_keyboard import menu_principal
 from services.manutencoes_service import get_manutencoes_by_usuario
+from dotenv import load_dotenv, find_dotenv
+
+# carrega .env (se existir)
+load_dotenv(find_dotenv())
 
 session = _Session()
+
+AWS = {
+    "Region": os.getenv("AWS_Region"),
+    "BucketName": os.getenv("AWS_BucketName"),
+}
+
+REGION = AWS["Region"]
+BUCKET_NAME = AWS["BucketName"]
 
 def ver_manutencao_handle(bot):
     @bot.message_handler(func=lambda message: message.text == "🔎 Ver Manutenções")
@@ -31,9 +45,38 @@ def ver_manutencao_handle(bot):
                     f"🔧 Serviço: {manutencao_servicos.servico.descricao}\n"
                     f"💲 Custo: R$ {manutencao.custo:.2f}\n"
                 )
-                bot.send_message(message.chat.id, info_manutencao) 
+
+                if (manutencao.imagem and manutencao.imagem != ""):
+                    keyboard = InlineKeyboardMarkup()
+                    keyboard.add(
+                        InlineKeyboardButton("📷 Ver imagem", callback_data=f"ver_img_{manutencao.id}")
+                    )
+
+                    bot.send_message(message.chat.id, info_manutencao, reply_markup=keyboard)
+                else:
+                    bot.send_message(message.chat.id, info_manutencao) 
 
             bot.send_message(message.chat.id, f"Escolha uma opção:", reply_markup=menu_principal())
+
+        finally:
+            session.close()
+
+    @bot.callback_query_handler(func=lambda call: call.data.startswith("ver_img_"))
+    def callback_ver_imagem(call):
+        manutencao_id = int(call.data.replace("ver_img_", ""))
+
+        session = _Session()
+        try:
+            manutencao = session.query(Manutencao).filter(Manutencao.id == manutencao_id).first()
+
+            if not manutencao or not manutencao.imagem:
+                bot.answer_callback_query(call.id, "❌ Nenhuma imagem encontrada.")
+                return
+
+            # Envia a foto salva (file_id)
+            bot.send_photo(call.message.chat.id, f"https://{BUCKET_NAME}.s3.{REGION}.amazonaws.com/uploads/imagens/{manutencao.imagem}")
+
+            bot.answer_callback_query(call.id)
 
         finally:
             session.close()

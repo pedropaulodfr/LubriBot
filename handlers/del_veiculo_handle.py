@@ -19,10 +19,14 @@ def del_veiculo_handle(bot):
         veiculos_usuario = get_veiculos_by_usuario(usuario.id)
         veiculos_opcoes = veiculos_keyboard(veiculos_usuario)
 
-        bot.send_message(message.chat.id, "Selecione um Veículo para manutenção: ", reply_markup=veiculos_opcoes)
+        bot.send_message(message.chat.id, "Selecione um veículo para deletar: ", reply_markup=veiculos_opcoes)
         bot.register_next_step_handler(message, receber_veiculo)
 
     def receber_veiculo(message):
+        if (message.text == "❌ Cancelar"):
+            bot.send_message(message.chat.id, "Operação de exclusão de veículo cancelada.", reply_markup=menu_principal())
+            return
+            
         placa_selecionada = message.text.split(" - ")[0].replace("-", "")
         veiculo = session.query(Veiculo).filter(Veiculo.placa == placa_selecionada).first()
 

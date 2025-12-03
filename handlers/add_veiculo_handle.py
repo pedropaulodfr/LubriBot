@@ -2,6 +2,8 @@ from telebot.types import ReplyKeyboardRemove, ForceReply
 from repository.models import Usuario, Veiculo, _Session
 from keyboards.tipos_veiculos_keyboard import tipos_veiculos_keyboard
 from keyboards.menu_principal_keyboard import menu_principal
+from keyboards.modelos_veiculos_keyboard import modelos_veiculos_keyboard
+from services.vpic_service import get_modelos_por_marca_ano
 
 session = _Session()
 veiculo = Veiculo()
@@ -62,14 +64,33 @@ def add_veiculo_handle(bot):
         fabricante = message.text
         veiculo.fabricante = fabricante
 
-        bot.send_message(message.chat.id, "Informe o modelo:", reply_markup=ForceReply())
-        bot.register_next_step_handler(message, receber_modelo)
+        modelos_veiculos = get_modelos_por_marca_ano(fabricante)
+
+        if(len(modelos_veiculos) > 0):
+            bot.send_message(message.chat.id, "Selecione ou insira o modelo:", reply_markup=modelos_veiculos_keyboard(modelos_veiculos))
+            bot.register_next_step_handler(message, receber_modelo)
+        else:
+            bot.send_message(message.chat.id, "Insira o modelo:", reply_markup=ForceReply())
+            bot.register_next_step_handler(message, receber_modelo_manualmente)
         
 
     def receber_modelo(message):
         modelo = message.text
-        veiculo.modelo = modelo
 
+        if (modelo == "❌ Cancelar"):
+            bot.send_message(message.chat.id, "❌ Operação de adição de veículo cancelada.", reply_markup=menu_principal())
+            return
+        elif (modelo == "⌨️ Inserir manualmente:"):
+            bot.send_message(message.chat.id, "Insira o modelo:", reply_markup=ForceReply())
+            bot.register_next_step_handler(message, receber_modelo_manualmente)
+        else:
+            veiculo.modelo = modelo
+            bot.send_message(message.chat.id, "Informe a cor:", reply_markup=ForceReply())
+            bot.register_next_step_handler(message, receber_cor)
+
+
+    def receber_modelo_manualmente(message):
+        veiculo.modelo = message.text
         bot.send_message(message.chat.id, "Informe a cor:", reply_markup=ForceReply())
         bot.register_next_step_handler(message, receber_cor)
 

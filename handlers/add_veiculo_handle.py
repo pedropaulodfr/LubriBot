@@ -64,7 +64,7 @@ def add_veiculo_handle(bot):
         fabricante = message.text
         veiculo.fabricante = fabricante
 
-        modelos_veiculos = get_modelos_por_marca_ano(fabricante)
+        modelos_veiculos = get_modelos_por_marca_ano(marca=fabricante, tipo_veiculo=veiculo.tipo)
 
         if(len(modelos_veiculos) > 0):
             bot.send_message(message.chat.id, "Selecione ou insira o modelo:", reply_markup=modelos_veiculos_keyboard(modelos_veiculos))

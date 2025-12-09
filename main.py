@@ -6,6 +6,7 @@ from http.server import SimpleHTTPRequestHandler, HTTPServer
 from dotenv import load_dotenv, find_dotenv
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
+
 # Handlers
 from handlers.start_handle import start
 from handlers.add_manutencao_handle import add_manutencao_handle
@@ -20,6 +21,7 @@ from handlers.configuracoes_handle import (
     configuracoes_cancelar
 )
 from handlers.del_veiculo_handle import del_veiculo_handle
+from handlers.ver_dicas_handle import ver_dica_handle
 
 from services.notificacoes_service import ProcessarNotificacoes, EnviaNotificacoes
 
@@ -82,6 +84,7 @@ configuracoes_handle(bot)
 configuracoes_receber_notificacoes(bot)
 configuracoes_dias_notificacao(bot)
 configuracoes_cancelar(bot)
+ver_dica_handle(bot)
 
 # -----------------------------
 # INÍCIO DO BOT

@@ -3,7 +3,8 @@ from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 # Estado global por usuário (cada chat tem seu próprio fluxo)
 CHECKBOX_STATE = {}
 
-def start_checkbox(bot, chat_id, options, on_finish, text="Selecione as opções:"):
+def start_checkbox(bot, message, options, on_finish, text="Selecione as opções:"):
+    chat_id = message if isinstance(message, int) else message.chat.id
     """
     Inicia um fluxo de 'checkbox' para um usuário.
     - options: lista de strings

@@ -22,6 +22,8 @@ from handlers.configuracoes_handle import (
 )
 from handlers.del_veiculo_handle import del_veiculo_handle
 from handlers.ver_dicas_handle import ver_dica_handle
+from keyboards.checkbox_genericos_keyboard import register_checkbox_handlers
+
 
 from services.notificacoes_service import ProcessarNotificacoes, EnviaNotificacoes
 
@@ -85,6 +87,7 @@ configuracoes_receber_notificacoes(bot)
 configuracoes_dias_notificacao(bot)
 configuracoes_cancelar(bot)
 ver_dica_handle(bot)
+register_checkbox_handlers(bot)
 
 # -----------------------------
 # INÍCIO DO BOT

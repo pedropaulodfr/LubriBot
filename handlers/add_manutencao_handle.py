@@ -1,18 +1,21 @@
 import base64 as b64
 from datetime import datetime
 from telebot.types import ReplyKeyboardRemove, ForceReply
-from repository.models import Usuario, Manutencao, ManutencaoServico, Veiculo, _Session
-from services.veiculos_service import get_veiculos_by_usuario
+from repository.models import _Session, Usuario, Manutencao, ManutencaoServico, Veiculo, Produto
 from keyboards.menu_principal_keyboard import menu_principal
-from keyboards.markups_genericos_keyboard import markups_genericos_keyboard
 from keyboards.veiculos_keyboard import veiculos_keyboard
+from keyboards.markups_genericos_keyboard import markups_genericos_keyboard
+from keyboards.checkbox_genericos_keyboard import start_checkbox
+from services.veiculos_service import get_veiculos_by_usuario
 from services.servicos_service import get_all_servicos, get_servico_by_descricao
+from services.produtos_service import get_all_produtos, get_produto_by_descricao_completa
 from utils.upload_file_async import upload
 
 
 session = _Session()
 manutencao = Manutencao()
 manutencaoServico = ManutencaoServico()
+produto = Produto()
 
 servicos_disponiveis = get_all_servicos()
 
@@ -132,8 +135,40 @@ def add_manutencao_handle(bot):
 
         upload(base64=b64.b64encode(downloaded_file).decode('utf-8'), tipo="imagens", filename=f"{foto_arquivo_id}.jpg")
 
-        bot.send_message(message.chat.id, "Informe o custo do serviço (em R$):", reply_markup=ForceReply())
-        bot.register_next_step_handler(message, receber_custo)  
+        informar_produtos_opcoes = markups_genericos_keyboard([
+            {'identificacao': 'Sim'},
+            {'identificacao': 'Não'}
+        ], "identificacao")
+        bot.send_message(message.chat.id, "Deseja informar os produtos utilizados?", reply_markup=informar_produtos_opcoes)
+        bot.register_next_step_handler(message, receber_resposta_mostrar_produtos)
+
+    
+    def receber_resposta_mostrar_produtos(message):
+        if message.text == "Sim":
+            mostrar_checkbox_produtos(message)
+        else:
+            bot.send_message(message.chat.id, "Informe o custo do serviço (em R$):", reply_markup=ForceReply())
+            bot.register_next_step_handler(message, receber_custo)
+
+
+    def mostrar_checkbox_produtos(message):
+        produtos = get_all_produtos()
+
+        opcoes = []
+        for produto in produtos:
+            opcoes.append(produto.descricao_completa)
+        
+        def finalizado(chat_id, selecionadas):
+            produtos_selecionados = []
+            for desc in selecionadas:
+                produto = get_produto_by_descricao_completa(desc)
+                if produto:
+                    produtos_selecionados.append(produto.descricao)
+
+            bot.send_message(message.chat.id, "Informe o custo do serviço (em R$):", reply_markup=ForceReply())
+            bot.register_next_step_handler(message, receber_custo)
+
+        start_checkbox(bot, message.chat.id, opcoes, finalizado)
 
 
     def receber_custo(message):

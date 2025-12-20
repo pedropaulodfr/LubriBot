@@ -1,7 +1,7 @@
 import os
 
 from telebot.types import ReplyKeyboardRemove,  InlineKeyboardMarkup, InlineKeyboardButton
-from repository.models import Usuario, Manutencao, ManutencaoServico, Servico, _Session
+from repository.models import Usuario, Manutencao, ManutencaoServico, ManutencaoProduto, Produto, Servico, _Session
 from keyboards.menu_principal_keyboard import menu_principal
 from services.manutencoes_service import get_manutencoes_by_usuario
 from dotenv import load_dotenv, find_dotenv
@@ -38,11 +38,16 @@ def ver_manutencao_handle(bot):
             bot.send_message(message.chat.id, f"{usuario.primeiroNome}, aqui estão as suas manutenções registradas:", reply_markup=ReplyKeyboardRemove())
 
             for manutencao in manutencoes:
+                manutencao_produtos = session.query(ManutencaoProduto).join(Produto).filter(ManutencaoProduto.manutencao_id == manutencao.id).all()
                 manutencao_servicos = session.query(ManutencaoServico).join(Servico).filter(ManutencaoServico.manutencao_id == manutencao.id).first()
+
+                produtos_descricoes = ", ".join([mp.produto.descricao for mp in manutencao_produtos]) if manutencao_produtos else "—"
+                
                 info_manutencao = (
                     f"🚘 Veículo: {manutencao.veiculo.tipo} {manutencao.veiculo.fabricante} {manutencao.veiculo.modelo} {manutencao.veiculo.cor} - {manutencao.veiculo.anoModelo} ({manutencao.veiculo.placa[:3]}-{manutencao.veiculo.placa[-4:]})\n"
                     f"📅 Data: {manutencao.data.strftime('%d/%m/%Y')}\n"
                     f"🔧 Serviço: {manutencao_servicos.servico.descricao}\n"
+                    f"🛢️ Produtos: {produtos_descricoes}\n"
                     f"💲 Custo: R$ {manutencao.custo:.2f}\n"
                 )
 

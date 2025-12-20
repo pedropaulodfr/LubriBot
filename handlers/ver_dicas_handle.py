@@ -1,9 +1,9 @@
-import os
+import os, datetime
 import google.generativeai as genai
 
 from telebot.types import ReplyKeyboardRemove,  InlineKeyboardMarkup, InlineKeyboardButton
 from dotenv import load_dotenv, find_dotenv
-from repository.models import Usuario, _Session
+from repository.models import Usuario, VeiculoDica, Veiculo, _Session
 from services.veiculos_service import get_veiculos_by_usuario
 from keyboards.menu_principal_keyboard import menu_principal
 from keyboards.veiculos_keyboard import veiculos_keyboard
@@ -52,9 +52,28 @@ def ver_dica_handle(bot):
         
         
     def processar_enviar_dica(message, veiculo):
-        send_and_delete(bot, message.chat.id, "🧠 Gerando dica personalizada para o seu veículo. Por favor, aguarde...", delay=60)
+        placa = message.text.split(" - ")[0]
+        placa = placa.replace("-", "")
+
+        usuario = session.query(Usuario).filter(Usuario.telegram_id == message.from_user.id).first()
+        dica = session.query(VeiculoDica).join(Veiculo).filter(Veiculo.placa == placa, Veiculo.usuario_id == usuario.id).first()
+
+        if (dica and dica.datacriacao <= (datetime.date.today() + datetime.timedelta(days=30))):
+            bot.send_message(message.chat.id, dica.texto, reply_markup=menu_principal())
+            return
+        else:
+            send_and_delete(bot, message.chat.id, "🧠 Gerando dica personalizada para o seu veículo. Por favor, aguarde...", delay=60)
         try:
             resposta = modelo.generate_content(get_dica_maintenance_prompt(veiculo))
+
+            veiculo_id = session.query(Veiculo).filter(Veiculo.placa == placa, Veiculo.usuario_id == usuario.id).first().id
+            dica = VeiculoDica(
+                veiculo_id = veiculo_id,
+                texto = resposta.text,
+                datacriacao = datetime.date.today()
+            )
+            session.add(dica)
+            session.commit()
 
             bot.send_message(message.chat.id, resposta.text, reply_markup=menu_principal())        
         except:

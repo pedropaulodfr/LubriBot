@@ -35,7 +35,7 @@ def ver_manutencao_handle(bot):
                 bot.send_message(message.chat.id, f"⚠️ Você ainda não veículos com manutenções registradas!", reply_markup=menu_principal())
                 return
 
-            bot.send_message(message.chat.id, f"{usuario.primeiroNome}, aqui estão as suas manutenções registradas:", reply_markup=ReplyKeyboardRemove())
+            bot.send_message(message.chat.id, f"{message.from_user.first_name}, aqui estão as suas manutenções registradas:", reply_markup=ReplyKeyboardRemove())
 
             for manutencao in manutencoes:
                 manutencao_produtos = session.query(ManutencaoProduto).join(Produto).filter(ManutencaoProduto.manutencao_id == manutencao.id).all()

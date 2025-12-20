@@ -1,7 +1,7 @@
 import base64 as b64
 from datetime import datetime
 from telebot.types import ReplyKeyboardRemove, ForceReply
-from repository.models import _Session, Usuario, Manutencao, ManutencaoServico, Veiculo, Produto
+from repository.models import _Session, Usuario, Manutencao, ManutencaoServico, ManutencaoProduto, Veiculo, Produto
 from keyboards.menu_principal_keyboard import menu_principal
 from keyboards.veiculos_keyboard import veiculos_keyboard
 from keyboards.markups_genericos_keyboard import markups_genericos_keyboard
@@ -15,6 +15,7 @@ from utils.upload_file_async import upload
 session = _Session()
 manutencao = Manutencao()
 manutencaoServico = ManutencaoServico()
+manutencaoProdutos = []
 produto = Produto()
 
 servicos_disponiveis = get_all_servicos()
@@ -159,11 +160,10 @@ def add_manutencao_handle(bot):
             opcoes.append(produto.descricao_completa)
         
         def finalizado(chat_id, selecionadas):
-            produtos_selecionados = []
             for desc in selecionadas:
                 produto = get_produto_by_descricao_completa(desc)
                 if produto:
-                    produtos_selecionados.append(produto.descricao)
+                    manutencaoProdutos.append(produto)
 
             bot.send_message(message.chat.id, "Informe o custo do serviço (em R$):", reply_markup=ForceReply())
             bot.register_next_step_handler(message, receber_custo)
@@ -195,6 +195,13 @@ def add_manutencao_handle(bot):
     def finalizar_registro(message):
         session.add(manutencao)
         session.commit()
+
+        for produto in manutencaoProdutos:
+            manutencaoProduto = ManutencaoProduto()
+            manutencaoProduto.manutencao_id = manutencao.id
+            manutencaoProduto.produto_id = produto.id
+            session.add(manutencaoProduto)
+            session.commit()
 
         manutencaoServico.manutencao_id = manutencao.id
         session.add(manutencaoServico)

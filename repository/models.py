@@ -79,6 +79,18 @@ class ManutencaoServico(Base):
     manutencao = relationship("Manutencao", backref="manutencaoservicos", lazy='subquery')
     servico = relationship("Servico", backref="manutencaoservicos", lazy='subquery')
 
+
+class ManutencaoProduto(Base):
+    __tablename__ = 'manutencaoprodutos'
+    
+    id = Column(Integer, primary_key=True)
+    manutencao_id = Column(Integer, ForeignKey('manutencoes.id'))
+    produto_id = Column(Integer, ForeignKey('produtos.id'))
+
+    manutencao = relationship("Manutencao", backref="manutencaoprodutos", lazy='subquery')
+    produto = relationship("Produto", backref="manutencaoprodutos", lazy='subquery')
+
+
 class Servico(Base):
     __tablename__ = 'servicos'
     

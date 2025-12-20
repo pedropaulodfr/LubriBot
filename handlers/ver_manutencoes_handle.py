@@ -49,6 +49,7 @@ def ver_manutencao_handle(bot):
                     f"🔧 Serviço: {manutencao_servicos.servico.descricao}\n"
                     f"🛢️ Produtos: {produtos_descricoes}\n"
                     f"💲 Custo: R$ {manutencao.custo:.2f}\n"
+                    f"📝 Observações: {manutencao.observacao if manutencao.observacao else '—'}"
                 )
 
                 if (manutencao.imagem and manutencao.imagem != ""):

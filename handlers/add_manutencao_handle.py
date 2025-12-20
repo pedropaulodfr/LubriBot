@@ -37,8 +37,6 @@ def add_manutencao_handle(bot):
             bot.send_message(message.chat.id, f"Escolha uma opção:", reply_markup=menu_principal())
             return
 
-        manutencao.status = "Finalizada"
-
         veiculos_opcoes = veiculos_keyboard(veiculos)
 
         bot.send_message(message.chat.id, "Selecione um Veículo para manutenção: ", reply_markup=veiculos_opcoes)
@@ -215,6 +213,7 @@ def add_manutencao_handle(bot):
         
 
     def finalizar_registro(message):
+        manutencao.status = "Finalizada"
         session.add(manutencao)
         session.commit()
 

@@ -68,12 +68,12 @@ def ver_dica_handle(bot):
             resposta = modelo.generate_content(get_dica_maintenance_prompt(veiculo))
 
             veiculo_id = session.query(Veiculo).filter(Veiculo.placa == placa, Veiculo.usuario_id == usuario.id).first().id
-            dica = VeiculoDica(
-                veiculo_id = veiculo_id,
-                texto = resposta.text,
-                datacriacao = datetime.date.today()
-            )
             if (not dica):
+                dica = VeiculoDica(
+                    veiculo_id = veiculo_id,
+                    texto = resposta.text,
+                    datacriacao = datetime.date.today()
+                )
                 session.add(dica)
             else:
                 dica.texto = resposta.text

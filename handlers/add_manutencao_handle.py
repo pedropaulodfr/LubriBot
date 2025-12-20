@@ -119,7 +119,7 @@ def add_manutencao_handle(bot):
 
         manutencaoServico.servico_id = novo_servico.id
 
-        bot.send_message(message.chat.id, "Informe a quilometragem do veículo: (em KM):", reply_markup=ForceReply())
+        bot.send_message(message.chat.id, "Informe a quilometragem do veículo (KM):", reply_markup=ForceReply())
         bot.register_next_step_handler(message, receber_quilometragem)
 
 

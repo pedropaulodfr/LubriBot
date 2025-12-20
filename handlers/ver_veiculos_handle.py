@@ -22,7 +22,7 @@ def ver_veiculo_handle(bot):
                 bot.send_message(message.chat.id, f"⚠️ Você ainda não possui veículos registrados!", reply_markup=menu_principal())
                 return
 
-            bot.send_message(message.chat.id, f"{usuario.primeiroNome}, aqui estão os seus veículos cadastrados:", reply_markup=ReplyKeyboardRemove())
+            bot.send_message(message.chat.id, f"{message.from_user.first_name}, aqui estão os seus veículos cadastrados:", reply_markup=ReplyKeyboardRemove())
 
             for veiculo in veiculos:
                 info_veiculo = (

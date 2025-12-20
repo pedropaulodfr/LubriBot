@@ -97,6 +97,9 @@ class Servico(Base):
     id = Column(Integer, primary_key=True)
     descricao = Column(String(50))
     status = Column(String(8))
+    usuario_id = Column(Integer, ForeignKey('usuarios.id'))
+    
+    usuario = relationship("Usuario", backref="servicos", lazy='subquery')
 
 class Produto(Base):
     __tablename__ = 'produtos'

@@ -55,6 +55,16 @@ class Veiculo(Base):
 
     usuario = relationship("Usuario", backref="veiculos", lazy='subquery')
 
+class VeiculoDica(Base):
+    __tablename__ = 'veiculodica'
+    
+    id = Column(Integer, primary_key=True)
+    veiculo_id = Column(Integer, ForeignKey('veiculos.id'))
+    texto = Column(Text)
+    datacriacao = Column(Date)
+
+    veiculo = relationship("Veiculo", backref="veiculodica", lazy='subquery')
+
 class Manutencao(Base):
     __tablename__ = 'manutencoes'
     

@@ -42,6 +42,7 @@ def tarefa_periodica():
 
         ProcessarNotificacoes()
         EnviaNotificacoes(bot)
+        print("✅ OK!")
 
         time.sleep(3600 * 24)  # 24h
 

@@ -1,7 +1,7 @@
 import base64 as b64
 from datetime import datetime
 from telebot.types import ReplyKeyboardRemove, ForceReply
-from repository.models import _Session, Usuario, Manutencao, ManutencaoServico, ManutencaoProduto, Veiculo, Produto
+from repository.models import _Session, Usuario, Manutencao, ManutencaoServico, ManutencaoProduto, Servico, Veiculo, Produto
 from keyboards.menu_principal_keyboard import menu_principal
 from keyboards.veiculos_keyboard import veiculos_keyboard
 from keyboards.markups_genericos_keyboard import markups_genericos_keyboard
@@ -17,8 +17,6 @@ manutencao = Manutencao()
 manutencaoServico = ManutencaoServico()
 manutencaoProdutos = []
 produto = Produto()
-
-servicos_disponiveis = get_all_servicos()
 
 
 def add_manutencao_handle(bot):
@@ -89,7 +87,11 @@ def add_manutencao_handle(bot):
         else:
             manutencao.data = datetime.strptime(data_texto, "%d/%m/%Y").strftime("%Y-%m-%d")
 
+        usuario = session.query(Usuario).filter(Usuario.telegram_id == message.from_user.id).first()
+        servicos_disponiveis = get_all_servicos(usuario_id=usuario.id)
+        servicos_disponiveis.append({'descricao': '⌨️ Outro: '})
         servicos_opcoes = markups_genericos_keyboard(servicos_disponiveis, "descricao")
+        
         bot.send_message(message.chat.id, "Descreva o serviço realizado:", reply_markup=servicos_opcoes)
         bot.register_next_step_handler(message, receber_servico)
 
@@ -97,7 +99,27 @@ def add_manutencao_handle(bot):
     def receber_servico(message):
         descricao_servico = message.text
 
-        manutencaoServico.servico_id = get_servico_by_descricao(descricao_servico).id
+        if (descricao_servico == "⌨️ Outro:"):
+            bot.send_message(message.chat.id, "Por favor, descreva o serviço realizado:", reply_markup=ForceReply())
+            bot.register_next_step_handler(message, receber_descricao_servico_personalizado)
+        else:
+            manutencaoServico.servico_id = get_servico_by_descricao(descricao_servico).id
+
+            bot.send_message(message.chat.id, "Informe a quilometragem do veículo: (em KM):", reply_markup=ForceReply())
+            bot.register_next_step_handler(message, receber_quilometragem)
+
+
+    def receber_descricao_servico_personalizado(message):
+        usuario = session.query(Usuario).filter(Usuario.telegram_id == message.from_user.id).first()
+        descricao_servico = message.text
+        novo_servico = Servico()
+        novo_servico.descricao = descricao_servico
+        novo_servico.usuario_id = usuario.id
+        novo_servico.status = "Ativo"
+        session.add(novo_servico)
+        session.commit()
+
+        manutencaoServico.servico_id = novo_servico.id
 
         bot.send_message(message.chat.id, "Informe a quilometragem do veículo: (em KM):", reply_markup=ForceReply())
         bot.register_next_step_handler(message, receber_quilometragem)

@@ -73,7 +73,7 @@ class Manutencao(Base):
     veiculo_id = Column(Integer, ForeignKey('veiculos.id'))
     km = Column(Integer)
     observacao = Column(String(100))
-    status = Column(String(10)),
+    status = Column(String(10))
     custo = Column(Float)
     imagem = Column(Text)
 

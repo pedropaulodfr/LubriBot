@@ -4,7 +4,7 @@ from services.usuarioparametros_service import get_parametros_usuario_by_telegra
 def configuracoes_keyboard(message): 
     parametros = get_parametros_usuario_by_telegram_id(message.from_user.id)
 
-    recebe_notificacao = parametros.receberNotificacoes
+    recebe_notificacao = parametros.receberNotificacoes if parametros else False
 
     markup = ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add(KeyboardButton(f"{'🔕 Desativar' if recebe_notificacao else '🔔 Ativar'} Notificações"))

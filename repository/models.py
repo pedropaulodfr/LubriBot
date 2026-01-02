@@ -6,7 +6,7 @@ from dotenv import load_dotenv, find_dotenv
 # carrega .env (se existir)
 load_dotenv(find_dotenv())
 
-STRING_CONNECTION = TOKEN = os.getenv('STRING_CONNECTION')
+STRING_CONNECTION = TOKEN = os.getenv('STRING_CONNECTION_AIVEN')
 
 engine = create_engine(STRING_CONNECTION)
 Base = declarative_base()

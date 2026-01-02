@@ -9,7 +9,7 @@ def tipos_veiculos_keyboard():
         KeyboardButton("Ônibus"),
         KeyboardButton("Van"),
         KeyboardButton("Outro"),
-        KeyboardButton("Cancelar")
+        KeyboardButton("❌ Cancelar")
     )
     
     return markup

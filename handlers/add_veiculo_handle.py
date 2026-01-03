@@ -1,4 +1,4 @@
-from telebot.types import ReplyKeyboardRemove, ForceReply
+from telebot.types import ReplyKeyboardRemove, ForceReply, InlineKeyboardButton, InlineKeyboardMarkup
 from repository.models import Usuario, Veiculo, _Session
 from keyboards.tipos_veiculos_keyboard import tipos_veiculos_keyboard
 from keyboards.menu_principal_keyboard import menu_principal
@@ -85,19 +85,61 @@ def add_veiculo_handle(bot):
             bot.register_next_step_handler(message, receber_modelo_manualmente)
         else:
             veiculo.modelo = modelo
-            bot.send_message(message.chat.id, "Informe a cor:", reply_markup=ForceReply())
-            bot.register_next_step_handler(message, receber_cor)
+            mostrar_cores_disponiveis(message)
 
 
     def receber_modelo_manualmente(message):
         veiculo.modelo = message.text
-        bot.send_message(message.chat.id, "Informe a cor:", reply_markup=ForceReply())
-        bot.register_next_step_handler(message, receber_cor)
+        mostrar_cores_disponiveis(message)
+
+    
+    def mostrar_cores_disponiveis(message):
+        markup_cores = InlineKeyboardMarkup()
+
+        markup_cores.row(
+            InlineKeyboardButton("🔴", callback_data="receber_cor:vermelha"),
+            InlineKeyboardButton("🟠", callback_data="receber_cor:laranja"),
+            InlineKeyboardButton("🟡", callback_data="receber_cor:amarela"),
+            InlineKeyboardButton("🟢", callback_data="receber_cor:verde"),
+            InlineKeyboardButton("🔵", callback_data="receber_cor:azul")
+        )
+
+        markup_cores.row(
+            InlineKeyboardButton("🟣", callback_data="receber_cor:roxa"),
+            InlineKeyboardButton("🟤", callback_data="receber_cor:marrom"),
+            InlineKeyboardButton("⚫", callback_data="receber_cor:preta"),
+            InlineKeyboardButton("⚪", callback_data="receber_cor:branca")
+        )
+
+        markup_cores.row(
+            InlineKeyboardButton("⌨️ Inserir manualmente:", callback_data="receber_cor:digitar"),
+            InlineKeyboardButton("❌ Cancelar", callback_data="receber_cor:cancelar")
+        )
+    
+        bot.send_message(message.chat.id, "Selecione a cor:", reply_markup=markup_cores)
+
+    
+    @bot.callback_query_handler(func=lambda call: call.data.startswith("receber_cor"))
+    def callback_receber_cor(call):
+        cor = call.data.split(":")[1]
+
+        if (cor == "digitar"):
+            bot.send_message(call.message.chat.id, "Informe a cor:", reply_markup=ForceReply())
+            bot.register_next_step_handler(call.message, receber_cor)
+        elif (cor == "cancelar"):
+            bot.send_message(call.message.chat.id, "❌ Operação de adição de veículo cancelada.", reply_markup=menu_principal())
+            bot.delete_message(call.message.chat.id, call.message.message_id)
+        else:
+            veiculo.cor = cor.capitalize()
+            bot.delete_message(call.message.chat.id, call.message.message_id)
+
+            bot.send_message(call.message.chat.id, "Informe o ano de fabricação:", reply_markup=ForceReply())
+            bot.register_next_step_handler(call.message, receber_ano_fabricacao)
 
 
     def receber_cor(message):
         cor = message.text
-        veiculo.cor = cor
+        veiculo.cor = cor.capitalize()
 
         bot.send_message(message.chat.id, "Informe o ano de fabricação:", reply_markup=ForceReply())
         bot.register_next_step_handler(message, receber_ano_fabricacao)

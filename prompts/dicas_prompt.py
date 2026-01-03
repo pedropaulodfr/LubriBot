@@ -8,6 +8,8 @@ def get_dica_maintenance_prompt(veiculo):
     Requisitos:
     - Texto dinâmico, amigável e fácil de ler.
     - Use emojis para deixar a leitura mais leve.
+    - É incentivado o uso de tags HTML para deixar o texto mais estiloso e agradável 
+        (Utilize somente as seguintes tags:<b>, <strong>, <i>, <em>, <u>, <s>, <code>, <pre>, <a href="">, <tg-spoiler>).
     - Organize em tópicos curtos (máx. 2–3 frases por tópico).
     - Seja prático e direto, sem explicações longas.
     - Destaque apenas o essencial para:

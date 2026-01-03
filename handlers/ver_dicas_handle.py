@@ -59,7 +59,7 @@ def ver_dica_handle(bot):
         dica = session.query(VeiculoDica).join(Veiculo).filter(Veiculo.placa == placa, Veiculo.usuario_id == usuario.id).first()
 
         if (dica and dica.datacriacao <= (datetime.date.today() + datetime.timedelta(days=30))):
-            bot.send_message(message.chat.id, dica.texto, reply_markup=menu_principal())
+            bot.send_message(message.chat.id, dica.texto, reply_markup=menu_principal(), parse_mode='HTML')
             return
         else:
             send_and_delete(bot, message.chat.id, "🧠 Gerando dica personalizada para o seu veículo. Por favor, aguarde...", delay=60)
@@ -80,6 +80,6 @@ def ver_dica_handle(bot):
                 dica.datacriacao = datetime.date.today()
             session.commit()
 
-            bot.send_message(message.chat.id, resposta.text, reply_markup=menu_principal())        
+            bot.send_message(message.chat.id, resposta.text, reply_markup=menu_principal(), parse_mode='HTML')        
         except:
             send_and_delete(bot, message.chat.id, "😕 Ocorreu um erro ao tentar gerar dica. Por favor, tente novamente!", reply_markup=menu_principal())        

@@ -103,7 +103,7 @@ def add_manutencao_handle(bot):
         else:
             manutencaoServico.servico_id = get_servico_by_descricao(descricao_servico).id
 
-            bot.send_message(message.chat.id, "Informe a quilometragem do veículo: (em KM):", reply_markup=ForceReply())
+            bot.send_message(message.chat.id, "Informe a quilometragem do veículo (KM):", reply_markup=ForceReply())
             bot.register_next_step_handler(message, receber_quilometragem)
 
 
@@ -202,6 +202,7 @@ def add_manutencao_handle(bot):
             return
 
         bot.send_message(message.chat.id, "Alguma observação a ser feita? (Opcional)", reply_markup=ForceReply())
+        bot.send_message(message.chat.id, "<i>Digite . se não quiser adicionar</i>", parse_mode='HTML')
         bot.register_next_step_handler(message, receber_obervacoes)
 
     def receber_obervacoes(message):

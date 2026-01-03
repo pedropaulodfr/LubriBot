@@ -128,6 +128,7 @@ def add_veiculo_handle(bot):
         veiculo.anoModelo = ano_modelo
 
         bot.send_message(message.chat.id, "Informe o RENAVAM: (Opcional)", reply_markup=ForceReply())
+        bot.send_message(message.chat.id, "<i>Digite . se não quiser adicionar</i>", parse_mode='HTML')
         bot.register_next_step_handler(message, receber_renavam)
     
 

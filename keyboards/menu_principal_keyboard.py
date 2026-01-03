@@ -7,6 +7,7 @@ def menu_principal():
         KeyboardButton("🔎 Ver Manutenções"),
         KeyboardButton("🚘 Gerenciar Veículos"),
         KeyboardButton("💡 Dicas"),
+        KeyboardButton("⚠️ Diagnósticos"),
         KeyboardButton("⚙️ Configurações"),
     )   
     return markup

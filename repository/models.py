@@ -6,7 +6,7 @@ from dotenv import load_dotenv, find_dotenv
 # carrega .env (se existir)
 load_dotenv(find_dotenv())
 
-STRING_CONNECTION = os.getenv('STRING_CONNECTION_AIVEN') if os.getenv('AMBIENTE') == "PRODUÇÃO" else os.getenv('STRING_CONNECTION_LOCAL')
+STRING_CONNECTION = os.getenv('STRING_CONNECTION') if os.getenv('AMBIENTE') == "PRODUÇÃO" else os.getenv('STRING_CONNECTION_LOCAL')
 
 engine = create_engine(STRING_CONNECTION)
 Base = declarative_base()

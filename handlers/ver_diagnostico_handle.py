@@ -46,7 +46,7 @@ def ver_diagnostico_handle(bot):
 
     def receber_veiculo(message):
         if (message.text == "❌ Cancelar"):
-            bot.send_message(message.chat.id, "Solicitação de dica cancelada.", reply_markup=menu_principal())
+            bot.send_message(message.chat.id, "Solicitação de diagnóstico cancelada.", reply_markup=menu_principal())
             return
         
         veiculo.placa = message.text.split(" - ")[0]

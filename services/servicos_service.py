@@ -32,3 +32,11 @@ def get_servico_by_id(id):
         return servico
     finally:
         session.close()
+
+def get_servicos_by_usuario(usuario_id):
+    session = _Session()
+    try:
+        servicos = session.query(Servico).filter(Servico.usuario_id == usuario_id, Servico.status == "Ativo").all()
+        return servicos
+    finally:
+        session.close()

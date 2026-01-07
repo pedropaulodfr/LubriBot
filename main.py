@@ -27,6 +27,9 @@ from handlers.mais_handle import mais_handle
 from handlers.gerenciar_produtos_handle import gerenciar_produtos_handle
 from handlers.add_produtos_handle import add_produto_handle
 from handlers.ver_produtos_handle import ver_produtos_handle
+from handlers.gerenciar_servicos_handle import gerenciar_servicos_handle
+from handlers.ver_servicos_handle import ver_servicos_handle
+from handlers.add_servico_handle import add_servico_handle
 
 from keyboards.checkbox_genericos_keyboard import register_checkbox_handlers
 
@@ -100,6 +103,9 @@ mais_handle(bot)
 gerenciar_produtos_handle(bot)
 add_produto_handle(bot)
 ver_produtos_handle(bot)
+gerenciar_servicos_handle(bot)
+ver_servicos_handle(bot)
+add_servico_handle(bot)
 
 # -----------------------------
 # INÍCIO DO BOT

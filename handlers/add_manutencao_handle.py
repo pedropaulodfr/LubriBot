@@ -8,7 +8,7 @@ from keyboards.markups_genericos_keyboard import markups_genericos_keyboard
 from keyboards.checkbox_genericos_keyboard import start_checkbox
 from services.veiculos_service import get_veiculos_by_usuario
 from services.servicos_service import get_all_servicos, get_servico_by_descricao
-from services.produtos_service import get_all_produtos, get_produto_by_descricao_completa
+from services.produtos_service import get_all_produtos_manutencao, get_produto_by_descricao_completa
 from utils.upload_file_async import upload
 
 
@@ -173,7 +173,8 @@ def add_manutencao_handle(bot):
 
 
     def mostrar_checkbox_produtos(message):
-        produtos = get_all_produtos()
+        usuario = session.query(Usuario).filter(Usuario.telegram_id == message.from_user.id).first()
+        produtos = get_all_produtos_manutencao(usuario.id)
 
         opcoes = []
         for produto in produtos:

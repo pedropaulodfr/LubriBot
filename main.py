@@ -24,6 +24,9 @@ from handlers.del_veiculo_handle import del_veiculo_handle
 from handlers.ver_dicas_handle import ver_dica_handle
 from handlers.ver_diagnostico_handle import ver_diagnostico_handle
 from handlers.mais_handle import mais_handle
+from handlers.gerenciar_produtos_handle import gerenciar_produtos_handle
+from handlers.add_produtos_handle import add_produto_handle
+from handlers.ver_produtos_handle import ver_produtos_handle
 
 from keyboards.checkbox_genericos_keyboard import register_checkbox_handlers
 
@@ -94,6 +97,9 @@ ver_dica_handle(bot)
 ver_diagnostico_handle(bot)
 register_checkbox_handlers(bot)
 mais_handle(bot)
+gerenciar_produtos_handle(bot)
+add_produto_handle(bot)
+ver_produtos_handle(bot)
 
 # -----------------------------
 # INÍCIO DO BOT

@@ -130,6 +130,9 @@ class Produto(Base):
     id = Column(Integer, primary_key=True)
     descricao = Column(String(50))
     status = Column(String(8))
+    usuario_id = Column(Integer, ForeignKey('usuarios.id'))
+    
+    usuario = relationship("Usuario", backref="produtos", lazy='subquery')
 
 class ServicoProduto(Base):
     __tablename__ = 'servicoprodutos'

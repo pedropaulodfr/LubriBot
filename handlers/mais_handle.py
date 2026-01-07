@@ -1,4 +1,3 @@
-from keyboards.veiculos_keyboard import gerenciar_veiculos_keyboard
 from keyboards.markups_genericos_keyboard import markups_genericos_keyboard
 
 def mais_handle(bot):

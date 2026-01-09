@@ -72,14 +72,13 @@ def ver_diagnostico_handle(bot):
         veiculo.id = session.query(Veiculo).filter(Veiculo.placa == placa, Veiculo.usuario_id == usuario.id).first().id
 
         diagnosticos_count = (
-            session.query(VeiculoDiagnosticos)
-            .join(VeiculoDiagnosticos.veiculo)
-            .filter(
-                Veiculo.usuario_id == usuario.id,
-                VeiculoDiagnosticos.datacriacao == datetime.date.today()
-            )
-            .count()
+        session.query(VeiculoDiagnosticos)
+        .filter(
+            VeiculoDiagnosticos.veiculo.has(Veiculo.usuario_id == usuario.id),
+            VeiculoDiagnosticos.datacriacao == datetime.date.today()
         )
+        .count()
+    )
         
         if diagnosticos_count >= 3:
             bot.send_message(message.chat.id, "❌ Você atingiu o limite diário de 3 diagnósticos. Por favor, tente novamente amanhã.", reply_markup=menu_principal())

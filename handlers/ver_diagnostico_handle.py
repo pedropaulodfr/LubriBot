@@ -70,6 +70,21 @@ def ver_diagnostico_handle(bot):
 
         usuario = session.query(Usuario).filter(Usuario.telegram_id == message.from_user.id).first()
         veiculo.id = session.query(Veiculo).filter(Veiculo.placa == placa, Veiculo.usuario_id == usuario.id).first().id
+
+        diagnosticos_usuario = (
+            session.query(VeiculoDiagnosticos)
+            .join(VeiculoDiagnosticos.veiculo)
+            .join(Veiculo.usuario)
+            .filter(
+                Usuario.telegram_id == message.from_user.id,
+                VeiculoDiagnosticos.datacriacao == datetime.date.today()
+            )
+            .all()
+        )
+        
+        if len(diagnosticos_usuario) >= 3:
+            bot.send_message(message.chat.id, "❌ Você atingiu o limite diário de 3 diagnósticos. Por favor, tente novamente amanhã.", reply_markup=menu_principal())
+            return
         
         send_and_delete(bot, message.chat.id, "🧠 Diagnosticando o problema do seu veículo. Por favor, aguarde...", delay=60)
 

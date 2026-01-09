@@ -65,6 +65,8 @@ def ver_dica_handle(bot):
             send_and_delete(bot, message.chat.id, "🧠 Gerando dica personalizada para o seu veículo. Por favor, aguarde...", delay=60)
 
         try:
+            bot.send_chat_action(message.chat.id, "typing")
+            
             resposta = modelo.generate_content(get_dica_maintenance_prompt(veiculo))
 
             veiculo_id = session.query(Veiculo).filter(Veiculo.placa == placa, Veiculo.usuario_id == usuario.id).first().id

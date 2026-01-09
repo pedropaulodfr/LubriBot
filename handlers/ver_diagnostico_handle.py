@@ -87,6 +87,8 @@ def ver_diagnostico_handle(bot):
         send_and_delete(bot, message.chat.id, "🧠 Diagnosticando o problema do seu veículo. Por favor, aguarde...", delay=60)
 
         try:
+            bot.send_chat_action(message.chat.id, "typing")
+            
             resposta = modelo.generate_content(get_diagnostico_prompt(veiculo.modelo, problema))
 
             diagnostico.veiculo_id = veiculo.id,

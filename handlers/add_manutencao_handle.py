@@ -209,12 +209,48 @@ def add_manutencao_handle(bot):
     def receber_obervacoes(message):
         observacoes_texto = message.text
         manutencao.observacao = observacoes_texto if observacoes_texto != "." else None
+
+        informar_nota_servico_opcoes = markups_genericos_keyboard([
+            {'identificacao': 'Sim'},
+            {'identificacao': 'Não'}
+        ], "identificacao")
         
-        bot.send_message(message.chat.id, "⏳ Gravando Manutenção...")
+        bot.send_message(message.chat.id, "Deseja anexar a nota de serviço ou recibo?", reply_markup=informar_nota_servico_opcoes)
+        bot.register_next_step_handler(message, receber_resposta_adicionar_nota_servico)
+
+    
+    def receber_resposta_adicionar_nota_servico(message):
+        if message.text == "Sim":
+            bot.send_message(message.chat.id, "Por favor, envie a foto da nota/recibo:", reply_markup=ForceReply())
+            bot.register_next_step_handler(message, receber_foto_recibo)
+        else:
+            finalizar_registro(message)
+
+    
+    def receber_foto_recibo(message):
+        if message.content_type != 'photo':
+            bot.send_message(message.chat.id, "❌ Por favor, envie uma foto válida.")
+            bot.register_next_step_handler(message, receber_foto)
+            return
+
+        foto_arquivo_id = message.photo[-1].file_id
+        manutencao.imagemNotaServico = f"{foto_arquivo_id}.jpg"
+
+        # Obtém informações sobre o arquivo (incluindo o file_path)
+        file_info = bot.get_file(foto_arquivo_id)
+        file_path = file_info.file_path
+
+        # Baixa o arquivo usando a API do Telegram
+        # bot.download_file retorna o conteúdo do arquivo em bytes
+        downloaded_file = bot.download_file(file_path)
+
+        upload(base64=b64.b64encode(downloaded_file).decode('utf-8'), tipo="imagens", filename=f"{foto_arquivo_id}.jpg")
+
         finalizar_registro(message)
-        
+
 
     def finalizar_registro(message):
+        bot.send_message(message.chat.id, "⏳ Gravando Manutenção...")
         manutencao.status = "Finalizada"
         session.add(manutencao)
         session.commit()

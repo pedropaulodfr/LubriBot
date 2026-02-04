@@ -115,10 +115,15 @@ def ver_manutencao_handle(bot):
                     f"📝 Observações: {manutencao.observacao if manutencao.observacao else '—'}"
                 )
 
+                keyboard = InlineKeyboardMarkup()
                 if (manutencao.imagem and manutencao.imagem != ""):
-                    keyboard = InlineKeyboardMarkup()
                     keyboard.add(
                         InlineKeyboardButton("📷 Ver imagem", callback_data=f"ver_img_{manutencao.id}")
+                    )
+                
+                if manutencao.imagemNotaServico and manutencao.imagemNotaServico != "":
+                    keyboard.add(
+                        InlineKeyboardButton("📄 Ver nota de serviço/recibo", callback_data=f"ver_img_nota_servico_{manutencao.id}")
                     )
 
                     bot.send_message(message.chat.id, info_manutencao, reply_markup=keyboard)
@@ -130,7 +135,7 @@ def ver_manutencao_handle(bot):
         finally:
             session.close()
 
-    @bot.callback_query_handler(func=lambda call: call.data.startswith("ver_img_"))
+    @bot.callback_query_handler(func=lambda call: call.data.startswith("ver_img_") and not call.data.startswith("ver_img_nota_servico_"))
     def callback_ver_imagem(call):
         manutencao_id = int(call.data.replace("ver_img_", ""))
 
@@ -144,6 +149,27 @@ def ver_manutencao_handle(bot):
 
             # Envia a foto salva (file_id)
             bot.send_photo(call.message.chat.id, f"https://{BUCKET_NAME}.s3.{REGION}.amazonaws.com/uploads/imagens/{manutencao.imagem}")
+
+            bot.answer_callback_query(call.id)
+
+        finally:
+            session.close()
+    
+    
+    @bot.callback_query_handler(func=lambda call: call.data.startswith("ver_img_nota_servico_"))
+    def callback_ver_imagem_nota_servico(call):
+        manutencao_id = int(call.data.replace("ver_img_nota_servico_", ""))
+
+        session = _Session()
+        try:
+            manutencao = session.query(Manutencao).filter(Manutencao.id == manutencao_id).first()
+
+            if not manutencao or not manutencao.imagemNotaServico:
+                bot.answer_callback_query(call.id, "❌ Nenhuma imagem encontrada.")
+                return
+
+            # Envia a foto salva (file_id)
+            bot.send_photo(call.message.chat.id, f"https://{BUCKET_NAME}.s3.{REGION}.amazonaws.com/uploads/imagens/{manutencao.imagemNotaServico}")
 
             bot.answer_callback_query(call.id)
 

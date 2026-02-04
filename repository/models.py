@@ -89,6 +89,7 @@ class Manutencao(Base):
     status = Column(String(10))
     custo = Column(Float)
     imagem = Column(Text)
+    imagemNotaServico = Column(Text)
 
     veiculo = relationship("Veiculo", backref="manutencoes", lazy='subquery')
 

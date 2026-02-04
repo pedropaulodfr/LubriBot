@@ -120,11 +120,11 @@ def ver_manutencao_handle(bot):
                     keyboard.add(
                         InlineKeyboardButton("📷 Ver imagem", callback_data=f"ver_img_{manutencao.id}")
                     )
-                
-                if manutencao.imagemNotaServico and manutencao.imagemNotaServico != "":
-                    keyboard.add(
-                        InlineKeyboardButton("📄 Ver nota de serviço/recibo", callback_data=f"ver_img_nota_servico_{manutencao.id}")
-                    )
+            
+                    if manutencao.imagemNotaServico and manutencao.imagemNotaServico != "":
+                        keyboard.add(
+                            InlineKeyboardButton("📄 Ver nota de serviço/recibo", callback_data=f"ver_img_nota_servico_{manutencao.id}")
+                        )
 
                     bot.send_message(message.chat.id, info_manutencao, reply_markup=keyboard)
                 else:

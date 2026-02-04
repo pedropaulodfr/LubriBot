@@ -3,7 +3,6 @@ from repository.models import Usuario, Produto, _Session
 from keyboards.menu_principal_keyboard import menu_principal
 
 session = _Session()
-produto = Produto()
 usuario = Usuario()
 
 def add_produto_handle(bot):
@@ -16,21 +15,22 @@ def add_produto_handle(bot):
             bot.send_message(message.chat.id, "❌ Usuário não encontrado.")
             return
 
+        produto = Produto()
         produto.usuario_id = usuario.id
         produto.status = "Ativo"
 
         bot.send_message(message.chat.id, "Informe a descrição do produto:", reply_markup=ForceReply())
-        bot.register_next_step_handler(message, receber_descricao)
+        bot.register_next_step_handler(message, receber_descricao, produto)
 
-    def receber_descricao(message):
+    def receber_descricao(message, produto):
         descricao = message.text.strip().capitalize()
         produto.descricao = descricao
 
         bot.send_message(message.chat.id, "⏳ Registrando produto...")
-        finalizar_registro(message)
+        finalizar_registro(message, produto)
 
 
-    def finalizar_registro(message):
+    def finalizar_registro(message, produto):
         session.add(produto)
         session.commit()
         session.close()

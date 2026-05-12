@@ -1,0 +1,76 @@
+2026-05-11 22:53:14,824 - INFO - Conexões estabelecidas com sucesso.
+2026-05-11 22:53:14,824 - INFO - --- Iniciando migração da tabela: usuarios ---
+2026-05-11 22:53:14,825 - INFO - Extraindo dados da tabela usuarios...
+2026-05-11 22:53:17,824 - INFO - Sucesso: 1 registros extraídos de usuarios.
+2026-05-11 22:53:17,825 - INFO - Carregando 1 registros em usuarios (Supabase)...
+2026-05-11 22:53:18,870 - ERROR - Erro ao carregar dados em usuarios: (psycopg2.OperationalError) connection to server at "db.jsjxkfczgihrfhgxxzft.supabase.co" (2600:1f18:7d97:f601:cedc:db53:c697:f5c), port 5432 failed: FATAL:  password authentication failed for user "postgres"
+connection to server at "db.jsjxkfczgihrfhgxxzft.supabase.co" (2600:1f18:7d97:f601:cedc:db53:c697:f5c), port 5432 failed: FATAL:  password authentication failed for user "postgres"
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-11 22:53:18,871 - ERROR - Erro fatal durante a migração: (psycopg2.OperationalError) connection to server at "db.jsjxkfczgihrfhgxxzft.supabase.co" (2600:1f18:7d97:f601:cedc:db53:c697:f5c), port 5432 failed: FATAL:  password authentication failed for user "postgres"
+connection to server at "db.jsjxkfczgihrfhgxxzft.supabase.co" (2600:1f18:7d97:f601:cedc:db53:c697:f5c), port 5432 failed: FATAL:  password authentication failed for user "postgres"
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-11 22:54:25,696 - INFO - Conexões estabelecidas com sucesso.
+2026-05-11 22:54:25,696 - INFO - --- Iniciando migração da tabela: usuarios ---
+2026-05-11 22:54:25,696 - INFO - Extraindo dados da tabela usuarios...
+2026-05-11 22:54:28,439 - INFO - Sucesso: 1 registros extraídos de usuarios.
+2026-05-11 22:54:28,439 - INFO - Carregando 1 registros em usuarios (Supabase)...
+2026-05-11 22:54:29,464 - ERROR - Erro ao carregar dados em usuarios: (psycopg2.OperationalError) connection to server at "db.jsjxkfczgihrfhgxxzft.supabase.co" (2600:1f18:7d97:f601:cedc:db53:c697:f5c), port 5432 failed: FATAL:  password authentication failed for user "postgres"
+connection to server at "db.jsjxkfczgihrfhgxxzft.supabase.co" (2600:1f18:7d97:f601:cedc:db53:c697:f5c), port 5432 failed: FATAL:  password authentication failed for user "postgres"
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-11 22:54:29,465 - ERROR - Erro fatal durante a migração: (psycopg2.OperationalError) connection to server at "db.jsjxkfczgihrfhgxxzft.supabase.co" (2600:1f18:7d97:f601:cedc:db53:c697:f5c), port 5432 failed: FATAL:  password authentication failed for user "postgres"
+connection to server at "db.jsjxkfczgihrfhgxxzft.supabase.co" (2600:1f18:7d97:f601:cedc:db53:c697:f5c), port 5432 failed: FATAL:  password authentication failed for user "postgres"
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-11 22:54:46,412 - INFO - Conexões estabelecidas com sucesso.
+2026-05-11 22:54:46,413 - INFO - --- Iniciando migração da tabela: usuarios ---
+2026-05-11 22:54:46,413 - INFO - Extraindo dados da tabela usuarios...
+2026-05-11 22:54:49,165 - INFO - Sucesso: 1 registros extraídos de usuarios.
+2026-05-11 22:54:49,165 - INFO - Carregando 1 registros em usuarios (Supabase)...
+2026-05-11 22:55:10,228 - ERROR - Erro ao carregar dados em usuarios: (psycopg2.OperationalError) connection to server at "db.jsjxkfczgihrfhgxxzft.supabase.co" (2600:1f18:7d97:f601:cedc:db53:c697:f5c), port 5432 failed: Connection timed out (0x0000274C/10060)
+	Is the server running on that host and accepting TCP/IP connections?
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-11 22:55:10,229 - ERROR - Erro fatal durante a migração: (psycopg2.OperationalError) connection to server at "db.jsjxkfczgihrfhgxxzft.supabase.co" (2600:1f18:7d97:f601:cedc:db53:c697:f5c), port 5432 failed: Connection timed out (0x0000274C/10060)
+	Is the server running on that host and accepting TCP/IP connections?
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-11 22:55:28,495 - INFO - Conexões estabelecidas com sucesso.
+2026-05-11 22:55:28,495 - INFO - --- Iniciando migração da tabela: usuarios ---
+2026-05-11 22:55:28,495 - INFO - Extraindo dados da tabela usuarios...
+2026-05-11 22:55:31,301 - INFO - Sucesso: 1 registros extraídos de usuarios.
+2026-05-11 22:55:31,301 - INFO - Carregando 1 registros em usuarios (Supabase)...
+2026-05-11 22:55:31,958 - ERROR - Erro ao carregar dados em usuarios: (psycopg2.OperationalError) connection to server at "db.jsjxkfczgihrfhgxxzft.supabase.co" (2600:1f18:7d97:f601:cedc:db53:c697:f5c), port 6543 failed: FATAL:  SASL authentication failed
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-11 22:55:31,958 - ERROR - Erro fatal durante a migração: (psycopg2.OperationalError) connection to server at "db.jsjxkfczgihrfhgxxzft.supabase.co" (2600:1f18:7d97:f601:cedc:db53:c697:f5c), port 6543 failed: FATAL:  SASL authentication failed
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-11 22:57:04,542 - INFO - Conexões estabelecidas com sucesso.
+2026-05-11 22:57:04,543 - INFO - --- Iniciando migração da tabela: usuarios ---
+2026-05-11 22:57:04,543 - INFO - Extraindo dados da tabela usuarios...
+2026-05-11 22:57:07,298 - INFO - Sucesso: 1 registros extraídos de usuarios.
+2026-05-11 22:57:07,298 - INFO - Carregando 1 registros em usuarios (Supabase)...
+2026-05-11 22:57:28,363 - ERROR - Erro ao carregar dados em usuarios: (psycopg2.OperationalError) connection to server at "db.jsjxkfczgihrfhgxxzft.supabase.co" (2600:1f18:7d97:f601:cedc:db53:c697:f5c), port 5432 failed: Connection timed out (0x0000274C/10060)
+	Is the server running on that host and accepting TCP/IP connections?
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-11 22:57:28,364 - ERROR - Erro fatal durante a migração: (psycopg2.OperationalError) connection to server at "db.jsjxkfczgihrfhgxxzft.supabase.co" (2600:1f18:7d97:f601:cedc:db53:c697:f5c), port 5432 failed: Connection timed out (0x0000274C/10060)
+	Is the server running on that host and accepting TCP/IP connections?
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-11 23:12:43,800 - INFO - Conexões estabelecidas com sucesso.
+2026-05-11 23:12:43,801 - INFO - --- Iniciando migração da tabela: usuarios ---
+2026-05-11 23:12:43,801 - INFO - Extraindo dados da tabela usuarios...
+2026-05-11 23:12:46,558 - INFO - Sucesso: 1 registros extraídos de usuarios.
+2026-05-11 23:12:46,559 - INFO - Carregando 1 registros em usuarios (Supabase)...
+2026-05-11 23:13:07,614 - ERROR - Erro ao carregar dados em usuarios: (psycopg2.OperationalError) connection to server at "db.jsjxkfczgihrfhgxxzft.supabase.co" (2600:1f18:7d97:f601:cedc:db53:c697:f5c), port 5432 failed: Connection timed out (0x0000274C/10060)
+	Is the server running on that host and accepting TCP/IP connections?
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-11 23:13:07,614 - ERROR - Erro fatal durante a migração: (psycopg2.OperationalError) connection to server at "db.jsjxkfczgihrfhgxxzft.supabase.co" (2600:1f18:7d97:f601:cedc:db53:c697:f5c), port 5432 failed: Connection timed out (0x0000274C/10060)
+	Is the server running on that host and accepting TCP/IP connections?
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)

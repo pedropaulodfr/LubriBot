@@ -164,4 +164,6 @@ class Notificacao(Base):
     veiculo = relationship("Veiculo", backref="notificacoes", lazy='subquery')
     manutencao = relationship("Manutencao", backref="notificacoes", lazy='subquery')
 
-Base.metadata.create_all(engine)    
+# Base.metadata.create_all(engine) — removido para produção (tabelas já existem no Supabase)
+# Em ambiente de desenvolvimento local, descomente a linha abaixo para criar tabelas:
+# Base.metadata.create_all(engine)

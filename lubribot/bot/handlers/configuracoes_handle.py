@@ -1,7 +1,7 @@
 from telebot.types import ForceReply
 from repository.models import _Session, Usuario, UsuarioParametro
-from keyboards.configuracoes_keyboard import configuracoes_keyboard
-from keyboards.menu_principal_keyboard import menu_principal
+from lubribot.bot.keyboards.configuracoes_keyboard import configuracoes_keyboard
+from lubribot.bot.keyboards.menu_principal_keyboard import menu_principal
 from services.usuarioparametros_service import get_parametros_usuario_by_telegram_id
 
 

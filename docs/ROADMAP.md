@@ -54,34 +54,33 @@ Concluído neste incremento:
 3. ✅ Sanitização de HTML da IA (allowlist) em dicas e diagnósticos.
 4. ✅ Paginação do histórico (5 por página).
 5. ✅ `/teste` restrito a `DEBUG_COMMANDS=true`.
+6. ✅ Migração física: `handlers/` e `keyboards/` movidos para `lubribot/bot/`.
+7. ✅ Confirmação antes de remover veículo.
 
 Pendente (próximo incremento):
 
-1. ⬜ Mover `handlers/` para `lubribot/bot/handlers` e `keyboards/` para
-   `lubribot/bot/keyboards` (migração física, imports precisam ser revisados).
-2. ⬜ Máquina de estados explícita por chat (substituir `register_next_step_handler`
-   por estado persistido, sobrevivendo a restart).
-3. ⬜ Confirmação antes de remover veículo.
-4. ⬜ Feedback de progresso mais claro em I/O longo (foto, IA).
-5. ⬜ Revisão de textos (acentuação/emoji) nos handlers ainda não tocados.
+1. ⬜ Máquina de estados explícita por chat, persistida no banco (sobreviver a
+   restart). Hoje os rascunhos vivem em memória.
+2. ⬜ Feedback de progresso mais claro em I/O longo (foto, IA).
+3. ⬜ Revisão de textos (acentuação/emoji) nos fluxos ainda não tocados.
 
 ## F6 — Performance
 
-1. Medir p50/p95 de cada comando (instrumentação simples por handler).
-2. Mover Gemini/S3/VPIC para executor com limite (não bloquear o polling).
-3. Revisar `selectin` onde houver carga desnecessária; medir N+1 com `EXPLAIN`.
-4. Pool do Supabase (pooler 6543) e parâmetros por ambiente — ✅ já configurável.
-5. Paginar listagem de manutenções (hoje envia uma mensagem por item) — ✅ feito
-   na F5 (5 por página).
+1. ⬜ Medir p50/p95 de cada comando com os logs de `duracao_ms` já emitidos
+   (Gemini e S3 instrumentados; falta coletar amostras em produção).
+2. ⬜ Mover Gemini/S3/VPIC para executor com limite (não bloquear o polling).
+3. ⬜ Revisar `selectin` onde houver carga desnecessária; medir N+1 com `EXPLAIN`.
+4. ✅ Pool do Supabase (pooler 6543) e parâmetros por ambiente configuráveis.
+5. ✅ Paginação da listagem de manutenções (5 por página).
 
 ## F7 — Segurança
 
 1. ✅ Autorização por dono em veículo/produto/serviço/diagnóstico.
-2. ⬜ Validação de entrada com Pydantic em todos os pontos de escrita.
+2. ✅ Validação de entrada centralizada (placa, ano, km, custo, RENAVAM).
 3. ⬜ Rate limiting por usuário para IA (hoje só o diagnóstico tem limite).
 4. ✅ Sanitização de HTML da IA (allowlist de tags).
 5. ⬜ Revisar permissões do role do banco (mínimo necessário) e SSL obrigatório.
-6. ⬜ Limpeza do histórico Git (decisão do dono — operação destrutiva).
+6. ✅ Limpeza do histórico Git (executada em 25/11/2026; backup em `Backups/`).
 
 ## F8 — Documentação
 

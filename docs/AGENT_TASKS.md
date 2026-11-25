@@ -63,11 +63,25 @@ Status: ✅ concluído · 🚧 em andamento · ⬜ pendente · 🧱 bloqueado
 | T-110 | Limpeza do histórico Git (decisão do dono) | Segurança | autorização | G |
 | T-111 | Rotação do token no BotFather | Dono | — | P |
 
+## Fase 4 (entregue)
+
+| ID | Tarefa | Dono | Escopo | Status |
+|---|---|---|---|---|
+| T-301 | Mover `handlers/` e `keyboards/` para `lubribot/bot/` | Python | `lubribot/bot/` | ✅ |
+| T-302 | Mover utilitários legados para `lubribot/utils/` | Python | `lubribot/utils/` | ✅ |
+| T-303 | Confirmação antes de remover veículo | UX | `del_veiculo_handle.py` | ✅ |
+| T-304 | Validação centralizada de entradas | Segurança | `lubribot/domain/validation.py` | ✅ |
+| T-305 | Medição de tempo de Gemini/S3 | Performance | `lubribot/utils/timing.py` | ✅ |
+| T-306 | Limpeza do histórico Git (PII/bytecode) | Segurança | `.git` + remoto | ✅ |
+| T-307 | Backup do histórico antes da reescrita | Segurança | `Backups/history-backup-20261125.bundle` | ✅ |
+| T-308 | Aplicar migrações no banco real | Banco | banco do dono | 🧱 bloqueado (sem DSN válido) |
+| T-309 | Máquina de estados persistida por chat | UX/Python | `lubribot/bot/` | ⬜ |
+| T-310 | Rotação do token no BotFather | Dono | — | ⬜ (adiada pelo dono) |
+
 ## Bloqueios
 
 | Bloqueio | Efeito | Dono | Ação |
 |---|---|---|---|
-| DSN de produção inválido: pooler responde `tenant/user not found`; Postgres local (`localhost:5433`) não está de pé | migrações não aplicadas no banco real | dono | enviar a connection string atual do projeto Supabase (Dashboard → Connect → Session/Transaction pooler) |
+| Nenhuma connection string válida nos arquivos: pooler Supabase responde `tenant/user not found`; host direto não resolve; Aiven (`SOURCE_DB_URL`) não resolve; `localhost:5433` desligado | migrações não aplicadas no banco real | dono | enviar a connection string atual do banco em uso (Supabase Dashboard → Connect) |
 | Corpo da procedure `sp_CriarNotificacaoProximaManutencao` desconhecido | impossível comparar regra original com a reconstruída | dono do produto | validar cálculo com casos reais |
-| Rotação do token | token antigo potencialmente válido | dono | BotFather → Revoke |
-| Reescrita do histórico Git | PII/segredo antigos no histórico | dono | autorizar operação destrutiva |
+| Rotação do token | token antigo potencialmente válido | dono | BotFather → Revoke (adiado por decisão do dono) |

@@ -6,7 +6,7 @@ O botão antigo era `"..."`. Para não quebrar teclados já enviados aos usuári
 
 from __future__ import annotations
 
-from keyboards.markups_genericos_keyboard import markups_genericos_keyboard
+from lubribot.bot.keyboards.markups_genericos_keyboard import markups_genericos_keyboard
 
 TEXTOS_BOTAO = ("🗂️ Mais opções", "...")
 

@@ -8,7 +8,7 @@ Motivação (auditoria de UX):
 
 from __future__ import annotations
 
-from keyboards.menu_principal_keyboard import menu_principal
+from lubribot.bot.keyboards.menu_principal_keyboard import menu_principal
 from lubribot.utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -25,9 +25,9 @@ AJUDA = (
 
 def _limpar_estados(chat_id: int) -> int:
     """Limpa rascunhos de conversa em andamento; devolve quantos foram limpos."""
-    from handlers.add_manutencao_handle import limpar_estado as limpar_manutencao
-    from handlers.add_veiculo_handle import limpar_estado as limpar_veiculo
-    from handlers.ver_diagnostico_handle import limpar_estado as limpar_diagnostico
+    from lubribot.bot.handlers.add_manutencao_handle import limpar_estado as limpar_manutencao
+    from lubribot.bot.handlers.add_veiculo_handle import limpar_estado as limpar_veiculo
+    from lubribot.bot.handlers.ver_diagnostico_handle import limpar_estado as limpar_diagnostico
 
     limpos = 0
     for funcao in (limpar_manutencao, limpar_veiculo, limpar_diagnostico):

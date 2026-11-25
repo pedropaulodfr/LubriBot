@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from telebot.types import ForceReply, ReplyKeyboardRemove
 
-from keyboards.menu_principal_keyboard import menu_principal
+from lubribot.bot.keyboards.menu_principal_keyboard import menu_principal
 from lubribot.database.runtime import get_database
 from lubribot.models import Produto, Usuario
 from lubribot.utils.logging import get_logger

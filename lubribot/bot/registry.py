@@ -8,30 +8,30 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from handlers.add_manutencao_handle import add_manutencao_handle
-from handlers.add_produtos_handle import add_produto_handle
-from handlers.add_servico_handle import add_servico_handle
-from handlers.add_veiculo_handle import add_veiculo_handle
-from handlers.configuracoes_handle import (
+from lubribot.bot.handlers.add_manutencao_handle import add_manutencao_handle
+from lubribot.bot.handlers.add_produtos_handle import add_produto_handle
+from lubribot.bot.handlers.add_servico_handle import add_servico_handle
+from lubribot.bot.handlers.add_veiculo_handle import add_veiculo_handle
+from lubribot.bot.handlers.configuracoes_handle import (
     configuracoes_cancelar,
     configuracoes_dias_notificacao,
     configuracoes_handle,
     configuracoes_receber_notificacoes,
 )
-from handlers.del_veiculo_handle import del_veiculo_handle
-from handlers.gerenciar_produtos_handle import gerenciar_produtos_handle
-from handlers.gerenciar_servicos_handle import gerenciar_servicos_handle
-from handlers.gerenciar_veiculos_handle import gerenciar_veiculos_handle
-from handlers.mais_handle import mais_handle
-from handlers.navegacao_handle import navegacao_handle
-from handlers.start_handle import start
-from handlers.ver_diagnostico_handle import ver_diagnostico_handle
-from handlers.ver_dicas_handle import ver_dica_handle
-from handlers.ver_manutencoes_handle import ver_manutencao_handle
-from handlers.ver_produtos_handle import ver_produtos_handle
-from handlers.ver_servicos_handle import ver_servicos_handle
-from handlers.ver_veiculos_handle import ver_veiculo_handle
-from keyboards.checkbox_genericos_keyboard import register_checkbox_handlers
+from lubribot.bot.handlers.del_veiculo_handle import del_veiculo_handle
+from lubribot.bot.handlers.gerenciar_produtos_handle import gerenciar_produtos_handle
+from lubribot.bot.handlers.gerenciar_servicos_handle import gerenciar_servicos_handle
+from lubribot.bot.handlers.gerenciar_veiculos_handle import gerenciar_veiculos_handle
+from lubribot.bot.handlers.mais_handle import mais_handle
+from lubribot.bot.handlers.navegacao_handle import navegacao_handle
+from lubribot.bot.handlers.start_handle import start
+from lubribot.bot.handlers.ver_diagnostico_handle import ver_diagnostico_handle
+from lubribot.bot.handlers.ver_dicas_handle import ver_dica_handle
+from lubribot.bot.handlers.ver_manutencoes_handle import ver_manutencao_handle
+from lubribot.bot.handlers.ver_produtos_handle import ver_produtos_handle
+from lubribot.bot.handlers.ver_servicos_handle import ver_servicos_handle
+from lubribot.bot.handlers.ver_veiculos_handle import ver_veiculo_handle
+from lubribot.bot.keyboards.checkbox_genericos_keyboard import register_checkbox_handlers
 from lubribot.utils.logging import get_logger
 
 if TYPE_CHECKING:  # pragma: no cover

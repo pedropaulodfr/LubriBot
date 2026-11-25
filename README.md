@@ -27,19 +27,22 @@ lubribot/            # aplicação modernizada (camadas)
 ├── config/          # settings validados (env)
 ├── database/        # engine, unidade de trabalho, advisory lock
 ├── models/          # mapeamento SQLAlchemy (fonte única)
-├── domain/          # regras puras: próxima manutenção, retry
+├── domain/          # regras puras: manutenção, retry, validação
 ├── repositories/    # consultas e persistência
 ├── notifications/   # planejador + despachante (outbox)
 ├── integrations/    # Telegram (envio classificado)
 ├── jobs/            # job + agendador periódico
-├── bot/             # registro de handlers
+├── bot/             # registry, handlers, teclados, navegação
+│   ├── handlers/    # um arquivo por fluxo
+│   └── keyboards/   # teclados Reply/Inline
 └── app.py           # bootstrap
 
-handlers/ keyboards/ services/ prompts/ utils/   # camada legada (F5 migra para lubribot/)
+services/ prompts/   # lógica legada mantida durante a migração incremental
 migrations/          # Alembic (0001 baseline, 0002 hardening)
-tests/               # pytest (domínio, notificações, config, modelos)
+tests/               # pytest: unidade + integração com Postgres
+scripts/             # operação: status do banco, aplicar migrações, validação
 docs/                # arquitetura, decisões, roadmap, runbook
-migration/           # ETL legado (Postgres → Supabase), mantido como ferramenta
+migration/           # ETL legado (Postgres -> Supabase), mantido como ferramenta
 ```
 
 ## Instalação

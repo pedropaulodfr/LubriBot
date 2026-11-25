@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-from keyboards.menu_principal_keyboard import menu_principal
+from lubribot.bot.keyboards.menu_principal_keyboard import menu_principal
 
 
 def _mensagem(chat_id: int = 10, texto: str = "") -> SimpleNamespace:
@@ -78,7 +78,7 @@ class TestMenuPrincipal:
 
 class TestSubmenuMaisOpcoes:
     def test_aceita_rotulo_novo_e_antigo(self):
-        from handlers.mais_handle import mais_handle
+        from lubribot.bot.handlers.mais_handle import mais_handle
 
         bot = FakeBot()
         mais_handle(bot)
@@ -88,7 +88,7 @@ class TestSubmenuMaisOpcoes:
         assert bot.handler_para("🛠️ Registrar Manutenção") is None
 
     def test_envia_opcoes_de_catalogo(self):
-        from handlers.mais_handle import mais_handle
+        from lubribot.bot.handlers.mais_handle import mais_handle
 
         bot = FakeBot()
         mais_handle(bot)
@@ -104,7 +104,7 @@ class TestSubmenuMaisOpcoes:
 
 class TestComandosDeNavegacao:
     def _registrar(self):
-        import handlers.navegacao_handle as modulo
+        import lubribot.bot.handlers.navegacao_handle as modulo
 
         bot = FakeBot()
         modulo.navegacao_handle(bot)

@@ -1,14 +1,16 @@
-"""Exclusão de veículo (soft delete).
+"""Exclusão de veículo (soft delete) com confirmação.
 
-Correções: o veículo era buscado só pela placa, permitindo remover o veículo de
-outro usuário; o objeto de módulo ``veiculo`` era reutilizado; e a sessão global
-nunca era fechada em caso de erro.
+Correções:
+- confirma antes de remover (antes o clique excluía direto);
+- exige o dono do veículo (antes buscava só pela placa);
+- sem objeto de módulo e sem sessão global.
 """
 
 from __future__ import annotations
 
-from keyboards.menu_principal_keyboard import menu_principal
-from keyboards.veiculos_keyboard import veiculos_keyboard
+from lubribot.bot.keyboards.markups_genericos_keyboard import markups_genericos_keyboard
+from lubribot.bot.keyboards.menu_principal_keyboard import menu_principal
+from lubribot.bot.keyboards.veiculos_keyboard import veiculos_keyboard
 from lubribot.database.runtime import get_database
 from lubribot.models import Usuario, Veiculo
 from lubribot.utils.logging import get_logger
@@ -58,6 +60,46 @@ def del_veiculo_handle(bot):
 
         placa = (message.text or "").split(" - ")[0].replace("-", "").strip().upper()
 
+        with get_database().unit_of_work(commit=False) as session:
+            veiculo = (
+                session.query(Veiculo)
+                .filter(
+                    Veiculo.placa == placa,
+                    Veiculo.usuario_id == usuario_id,
+                    Veiculo.status == "Ativo",
+                )
+                .first()
+            )
+            if veiculo is None:
+                bot.send_message(
+                    message.chat.id,
+                    "❌ Veículo não encontrado. Por favor, selecione um veículo válido.",
+                )
+                bot.register_next_step_handler(message, receber_veiculo, usuario_id)
+                return
+            descricao = f"{veiculo.fabricante or ''} {veiculo.modelo or ''}".strip() or placa
+
+        opcoes = markups_genericos_keyboard(
+            [{"identificacao": "Sim"}, {"identificacao": "Não"}], "identificacao"
+        )
+        bot.send_message(
+            message.chat.id,
+            f"⚠️ Confirmar a remoção do veículo *{descricao}* ({placa})?\n"
+            "O histórico de manutenções é preservado.",
+            parse_mode="Markdown",
+            reply_markup=opcoes,
+        )
+        bot.register_next_step_handler(message, confirmar_remocao, usuario_id, placa)
+
+    def confirmar_remocao(message, usuario_id: int, placa: str):
+        if message.text != "Sim":
+            bot.send_message(
+                message.chat.id,
+                "❌ Exclusão cancelada.",
+                reply_markup=menu_principal(),
+            )
+            return
+
         try:
             with get_database().unit_of_work() as session:
                 veiculo = (
@@ -72,9 +114,9 @@ def del_veiculo_handle(bot):
                 if veiculo is None:
                     bot.send_message(
                         message.chat.id,
-                        "❌ Veículo não encontrado. Por favor, selecione um veículo válido.",
+                        "❌ Veículo não encontrado.",
+                        reply_markup=menu_principal(),
                     )
-                    bot.register_next_step_handler(message, receber_veiculo, usuario_id)
                     return
                 veiculo.status = "Deletado"
         except Exception:

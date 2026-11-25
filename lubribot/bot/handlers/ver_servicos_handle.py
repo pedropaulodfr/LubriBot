@@ -8,8 +8,8 @@ from __future__ import annotations
 
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove
 
-from keyboards.markups_genericos_keyboard import markups_genericos_keyboard
-from keyboards.menu_principal_keyboard import menu_principal
+from lubribot.bot.keyboards.markups_genericos_keyboard import markups_genericos_keyboard
+from lubribot.bot.keyboards.menu_principal_keyboard import menu_principal
 from lubribot.database.runtime import get_database
 from lubribot.models import Servico, Usuario
 from lubribot.utils.logging import get_logger

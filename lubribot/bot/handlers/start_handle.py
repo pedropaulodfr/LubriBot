@@ -8,8 +8,8 @@ Mudanças:
 
 from __future__ import annotations
 
-from keyboards.checkbox_genericos_keyboard import start_checkbox
-from keyboards.menu_principal_keyboard import menu_principal
+from lubribot.bot.keyboards.checkbox_genericos_keyboard import start_checkbox
+from lubribot.bot.keyboards.menu_principal_keyboard import menu_principal
 from lubribot.config.settings import get_settings
 from lubribot.database.runtime import get_database
 from lubribot.models import Usuario

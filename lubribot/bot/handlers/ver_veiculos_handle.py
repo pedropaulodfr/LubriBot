@@ -1,6 +1,6 @@
 from telebot.types import ReplyKeyboardRemove
 from repository.models import Usuario, _Session
-from keyboards.menu_principal_keyboard import menu_principal
+from lubribot.bot.keyboards.menu_principal_keyboard import menu_principal
 from services.veiculos_service import get_veiculos_by_usuario
 
 

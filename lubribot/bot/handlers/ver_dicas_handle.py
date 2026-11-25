@@ -5,11 +5,12 @@ from telebot.types import ReplyKeyboardRemove,  InlineKeyboardMarkup, InlineKeyb
 from dotenv import load_dotenv, find_dotenv
 from repository.models import Usuario, VeiculoDica, Veiculo, _Session
 from services.veiculos_service import get_veiculos_by_usuario
-from keyboards.menu_principal_keyboard import menu_principal
-from keyboards.veiculos_keyboard import veiculos_keyboard
+from lubribot.bot.keyboards.menu_principal_keyboard import menu_principal
+from lubribot.bot.keyboards.veiculos_keyboard import veiculos_keyboard
 from prompts.dicas_prompt import get_dica_maintenance_prompt
 from lubribot.utils.sanitize import sanitizar_html
-from utils.envio_mensagem import send_and_delete
+from lubribot.utils.timing import medir
+from lubribot.utils.envio_mensagem import send_and_delete
 
 
 # carrega .env (se existir)
@@ -76,7 +77,8 @@ def ver_dica_handle(bot):
         try:
             bot.send_chat_action(message.chat.id, "typing")
             
-            resposta = modelo.generate_content(get_dica_maintenance_prompt(veiculo))
+            with medir("gemini_dica", usuario_id=usuario.id):
+                resposta = modelo.generate_content(get_dica_maintenance_prompt(veiculo))
 
             veiculo_id = session.query(Veiculo).filter(Veiculo.placa == placa, Veiculo.usuario_id == usuario.id).first().id
             if (not dica):

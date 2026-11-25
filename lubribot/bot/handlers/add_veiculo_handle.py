@@ -17,10 +17,16 @@ from telebot.types import (
     ReplyKeyboardRemove,
 )
 
-from keyboards.menu_principal_keyboard import menu_principal
-from keyboards.modelos_veiculos_keyboard import modelos_veiculos_keyboard
-from keyboards.tipos_veiculos_keyboard import tipos_veiculos_keyboard
+from lubribot.bot.keyboards.menu_principal_keyboard import menu_principal
+from lubribot.bot.keyboards.modelos_veiculos_keyboard import modelos_veiculos_keyboard
+from lubribot.bot.keyboards.tipos_veiculos_keyboard import tipos_veiculos_keyboard
 from lubribot.database.runtime import get_database
+from lubribot.domain.validation import (
+    normalizar_placa,
+    normalizar_renavam,
+    validar_ano,
+    validar_placa,
+)
 from lubribot.models import Usuario, Veiculo
 from lubribot.utils.logging import get_logger
 from services.vpic_service import get_modelos_por_marca_ano
@@ -89,12 +95,12 @@ def add_veiculo_handle(bot):
             )
             return
 
-        placa = (message.text or "").replace("-", "").strip()
+        placa = normalizar_placa(message.text)
 
-        if len(placa) != 7:
+        if validar_placa(placa) is None:
             bot.send_message(
                 message.chat.id,
-                "❌ Placa inválida! Por favor, envie uma placa válida",
+                "❌ Placa inválida! Envie uma placa no formato ABC1234 ou ABC1D23.",
                 reply_markup=ForceReply(),
             )
             bot.register_next_step_handler(message, receber_placa)
@@ -268,11 +274,11 @@ def add_veiculo_handle(bot):
             bot.send_message(message.chat.id, "⚠️ Sessão de cadastro expirada.", reply_markup=menu_principal())
             return
 
-        ano = (message.text or "").strip()
-        if len(ano) != 4 or not ano.isdigit():
+        ano = validar_ano(message.text)
+        if ano is None:
             bot.send_message(
                 message.chat.id,
-                "❌ Ano inválido! Por favor, informe um ano válido com 4 dígitos. Ex: 2026",
+                "❌ Ano inválido! Informe um ano com 4 dígitos. Ex: 2026",
             )
             bot.register_next_step_handler(message, receber_ano_fabricacao)
             return
@@ -287,11 +293,11 @@ def add_veiculo_handle(bot):
             bot.send_message(message.chat.id, "⚠️ Sessão de cadastro expirada.", reply_markup=menu_principal())
             return
 
-        ano = (message.text or "").strip()
-        if len(ano) != 4 or not ano.isdigit():
+        ano = validar_ano(message.text)
+        if ano is None:
             bot.send_message(
                 message.chat.id,
-                "❌ Ano inválido! Por favor, informe um ano válido com 4 dígitos. Ex: 2026",
+                "❌ Ano inválido! Informe um ano com 4 dígitos. Ex: 2026",
             )
             bot.register_next_step_handler(message, receber_ano_modelo)
             return
@@ -312,7 +318,7 @@ def add_veiculo_handle(bot):
             return
 
         texto = (message.text or "").strip()
-        rascunho.renavam = None if texto in {"", "."} else texto
+        rascunho.renavam = normalizar_renavam(texto)
 
         bot.send_message(message.chat.id, "⏳ Registrando veículo...")
         finalizar_registro(message, rascunho)

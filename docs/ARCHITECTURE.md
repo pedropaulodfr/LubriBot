@@ -94,12 +94,14 @@ A fase F5 move handlers para `lubribot/bot/handlers` e remove a pasta
 
 ## Interface do Telegram (UX)
 
-- **Menu principal** ([keyboards/menu_principal_keyboard.py](../keyboards/menu_principal_keyboard.py)):
+- **Menu principal** ([lubribot/bot/keyboards/menu_principal_keyboard.py](../lubribot/bot/keyboards/menu_principal_keyboard.py)):
   7 ações em 4 linhas; histórico no primeiro nível; "🗂️ Mais opções" no lugar do
   antigo botão `"..."`.
-- **Navegação** ([handlers/navegacao_handle.py](../handlers/navegacao_handle.py)):
+- **Navegação** ([lubribot/bot/handlers/navegacao_handle.py](../lubribot/bot/handlers/navegacao_handle.py)):
   `/menu` restaura o teclado (recupera usuário preso), `/cancelar` limpa rascunhos
   de conversa por chat, `/ajuda` lista comandos.
+- **Fluxos** em [lubribot/bot/handlers/](../lubribot/bot/handlers/), um arquivo por
+  fluxo; confirmação antes de remover veículo.
 - **Rascunhos por chat**: cada fluxo com múltiplas etapas mantém
   `dict[chat_id, Rascunho]` em memória (dados simples, não ORM). O estado não
   sobrevive a restart — aceitável agora; a fase F5.2 migra para estado persistido.
@@ -108,6 +110,11 @@ A fase F5 move handlers para `lubribot/bot/handlers` e remove a pasta
 - **HTML da IA**: todo texto gerado por modelo passa por
   [lubribot/utils/sanitize.py](../lubribot/utils/sanitize.py) antes do envio
   (`parse_mode="HTML"`), com allowlist de tags e bloqueio de `javascript:`.
+- **Validação**: placa, ano, km, custo e RENAVAM passam por
+  [lubribot/domain/validation.py](../lubribot/domain/validation.py).
+- **Medição**: chamadas ao Gemini e ao S3 são cronometradas
+  ([lubribot/utils/timing.py](../lubribot/utils/timing.py)) e logadas em
+  `duracao_ms`, para orientar a otimização da F6.
 
 ## Testes
 

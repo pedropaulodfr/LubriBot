@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.2.0-dev] — 25/11/2026 — Fase 4: pacotes, segurança de entrada e higiene do histórico
+
+### Adicionado
+- Validação centralizada de entradas (`lubribot/domain/validation.py`): placa
+  (antiga e Mercosul), ano, km, custo em formato brasileiro e RENAVAM.
+- Medição de tempo de operações caras (`lubribot/utils/timing.py`): chamadas ao
+  Gemini e upload no S3 registram `duracao_ms` em log estruturado.
+- Confirmação (Sim/Não) antes de remover veículo.
+
+### Alterado
+- `handlers/`, `keyboards/` e utilitários migrados para
+  `lubribot/bot/handlers/`, `lubribot/bot/keyboards/` e `lubribot/utils/`.
+- Histórico Git reescrito: removidos `migration_data.sql` (PII),
+  `migration.log` e todos os `.pyc` de **todos** os commits; branches remotas
+  atualizadas com force-push. Backup em `Backups/history-backup-20261125.bundle`.
+
+### Segurança
+- Histórico sem PII/bytecode: 121 objetos sensíveis removidos; `.git` caiu de
+  0,4 MB para 0,2 MB.
+- 168 testes passando, Ruff limpo, import da aplicação validado.
+
 ## [2.1.0-dev] — 24/11/2026 — Fase 3: experiência do Telegram
 
 ### Adicionado

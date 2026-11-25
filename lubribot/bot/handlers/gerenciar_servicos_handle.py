@@ -1,4 +1,4 @@
-from keyboards.markups_genericos_keyboard import markups_genericos_keyboard
+from lubribot.bot.keyboards.markups_genericos_keyboard import markups_genericos_keyboard
 
 def gerenciar_servicos_handle(bot):
     @bot.message_handler(func=lambda message: message.text == "🧰 Gerenciar Serviços")

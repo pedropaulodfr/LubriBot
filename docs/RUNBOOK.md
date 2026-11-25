@@ -246,8 +246,21 @@ tem autenticação (retorna só status).
 
 - Não versionar `.env`, dumps (`migration_data.sql`) nem bytecode.
 - Rotacionar token do bot e chaves de IA/S3 se houver suspeita de exposição.
-- O histórico Git ainda contém artefatos antigos (`.pyc` e dump). Limpar exige
-  reescrita do histórico (`git filter-repo`) — decisão do dono, com clone de
-  backup antes.
+  **Pendente por decisão do dono** (token antigo ainda válido).
 - Revisar permissões do role do banco: o bot precisa de DML nas tabelas, não de
   superusuário.
+
+### 9.1 Histórico Git (limpeza executada em 25/11/2026)
+
+O histórico foi reescrito para remover `migration_data.sql` (PII),
+`migration.log` e todos os `.pyc` de todos os commits:
+
+- backup completo em `Backups/history-backup-20261125.bundle`
+  (restaurar com `git clone <bundle> repo-restaurado`);
+- 121 objetos sensíveis removidos; `.git` caiu de 0,4 MB para 0,2 MB;
+- branches remotas atualizadas com `git push --force` (master, main, AddFoto,
+  SelecaoProdutos, MigraçãoBancoDeDados e modernizacao/fase-2);
+- o GitHub mantém objetos antigos em cache por um tempo; para expurgo imediato é
+  preciso pedir ao suporte do GitHub. Commits antigos já não são alcançáveis.
+- `migration_data.sql` e `migration.log` continuam **fora** do Git, no disco;
+  recomenda-se apagá-los.

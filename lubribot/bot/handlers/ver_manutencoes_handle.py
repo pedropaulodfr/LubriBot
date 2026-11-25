@@ -16,9 +16,9 @@ import os
 from dotenv import find_dotenv, load_dotenv
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove
 
-from keyboards.markups_genericos_keyboard import markups_genericos_keyboard
-from keyboards.menu_principal_keyboard import menu_principal
-from keyboards.veiculos_keyboard import veiculos_keyboard
+from lubribot.bot.keyboards.markups_genericos_keyboard import markups_genericos_keyboard
+from lubribot.bot.keyboards.menu_principal_keyboard import menu_principal
+from lubribot.bot.keyboards.veiculos_keyboard import veiculos_keyboard
 from lubribot.database.runtime import get_database
 from lubribot.models import (
     Manutencao,

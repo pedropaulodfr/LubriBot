@@ -18,16 +18,17 @@ import google.generativeai as genai
 from dotenv import find_dotenv, load_dotenv
 from telebot.types import ForceReply
 
-from keyboards.markups_genericos_keyboard import markups_genericos_keyboard
-from keyboards.menu_principal_keyboard import menu_principal
-from keyboards.veiculos_keyboard import veiculos_keyboard
+from lubribot.bot.keyboards.markups_genericos_keyboard import markups_genericos_keyboard
+from lubribot.bot.keyboards.menu_principal_keyboard import menu_principal
+from lubribot.bot.keyboards.veiculos_keyboard import veiculos_keyboard
 from lubribot.database.runtime import get_database
 from lubribot.models import Usuario, Veiculo, VeiculoDiagnosticos
 from lubribot.utils.logging import get_logger
+from lubribot.utils.timing import medir
 from lubribot.utils.sanitize import sanitizar_html
 from prompts.diagnosticos_prompt import get_diagnostico_prompt
 from services.veiculos_service import get_veiculos_by_usuario
-from utils.envio_mensagem import send_and_delete
+from lubribot.utils.envio_mensagem import send_and_delete
 
 logger = get_logger(__name__)
 
@@ -180,9 +181,10 @@ def ver_diagnostico_handle(bot):
 
         try:
             bot.send_chat_action(message.chat.id, "typing")
-            resposta = modelo.generate_content(
-                get_diagnostico_prompt(estado["veiculo_texto"], problema)
-            )
+            with medir("gemini_diagnostico", usuario_id=estado["usuario_id"]):
+                resposta = modelo.generate_content(
+                    get_diagnostico_prompt(estado["veiculo_texto"], problema)
+                )
             texto = (resposta.text or "").strip()
             if not texto:
                 raise RuntimeError("resposta vazia da IA")

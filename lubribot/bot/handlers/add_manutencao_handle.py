@@ -20,11 +20,16 @@ from datetime import date, datetime
 
 from telebot.types import ForceReply, ReplyKeyboardRemove
 
-from keyboards.checkbox_genericos_keyboard import start_checkbox
-from keyboards.markups_genericos_keyboard import markups_genericos_keyboard
-from keyboards.menu_principal_keyboard import menu_principal
-from keyboards.veiculos_keyboard import veiculos_keyboard
+from lubribot.bot.keyboards.checkbox_genericos_keyboard import start_checkbox
+from lubribot.bot.keyboards.markups_genericos_keyboard import markups_genericos_keyboard
+from lubribot.bot.keyboards.menu_principal_keyboard import menu_principal
+from lubribot.bot.keyboards.veiculos_keyboard import veiculos_keyboard
 from lubribot.database.runtime import get_database
+from lubribot.domain.validation import (
+    normalizar_texto_livre,
+    validar_custo,
+    validar_km,
+)
 from lubribot.models import (
     Manutencao,
     ManutencaoProduto,
@@ -37,7 +42,7 @@ from lubribot.utils.logging import get_logger
 from services.produtos_service import get_all_produtos_manutencao, get_produto_by_descricao_completa
 from services.veiculos_service import get_veiculos_by_usuario
 from services.servicos_service import get_all_servicos
-from utils.upload_file_async import upload as upload_s3
+from lubribot.utils.upload_file_async import upload as upload_s3
 
 logger = get_logger(__name__)
 
@@ -320,16 +325,16 @@ def add_manutencao_handle(bot):
             _reiniciar(bot, message)
             return
 
-        try:
-            rascunho.km = int((message.text or "").strip())
-        except ValueError:
+        km = validar_km(message.text)
+        if km is None:
             bot.send_message(
                 message.chat.id,
-                "❌ Formato de quilometragem inválido. Por favor, informe um valor numérico.",
+                "❌ Quilometragem inválida. Informe um número (ex.: 45000):",
                 reply_markup=ForceReply(),
             )
             bot.register_next_step_handler(message, receber_quilometragem)
             return
+        rascunho.km = km
 
         bot.send_message(
             message.chat.id,
@@ -412,16 +417,16 @@ def add_manutencao_handle(bot):
             _reiniciar(bot, message)
             return
 
-        try:
-            rascunho.custo = float((message.text or "").replace(",", "."))
-        except ValueError:
+        custo = validar_custo(message.text)
+        if custo is None:
             bot.send_message(
                 message.chat.id,
-                "❌ Formato de custo inválido. Por favor, informe um valor numérico.",
+                "❌ Valor inválido. Informe o custo em reais (ex.: 120,50):",
                 reply_markup=ForceReply(),
             )
             bot.register_next_step_handler(message, receber_custo)
             return
+        rascunho.custo = custo
 
         _perguntar_observacoes(bot, message)
 
@@ -432,7 +437,7 @@ def add_manutencao_handle(bot):
             return
 
         texto = (message.text or "").strip()
-        rascunho.observacao = None if texto in {"", "."} else texto[:100]
+        rascunho.observacao = normalizar_texto_livre(texto, limite=100)
 
         opcoes = markups_genericos_keyboard(
             [{"identificacao": "Sim"}, {"identificacao": "Não"}], "identificacao"
@@ -538,14 +543,17 @@ def add_manutencao_handle(bot):
 
 def _enviar_para_s3(bot, message, file_id: str, tipo: str) -> bool:
     """Baixa a foto do Telegram e envia ao S3; retorna se deu certo."""
+    from lubribot.utils.timing import medir
+
     try:
-        informacoes = bot.get_file(file_id)
-        conteudo = bot.download_file(informacoes.file_path)
-        url = upload_s3(
-            base64=b64.b64encode(conteudo).decode("utf-8"),
-            tipo=tipo,
-            filename=f"{file_id}.jpg",
-        )
+        with medir("telegram_s3_upload", file_id=file_id):
+            informacoes = bot.get_file(file_id)
+            conteudo = bot.download_file(informacoes.file_path)
+            url = upload_s3(
+                base64=b64.b64encode(conteudo).decode("utf-8"),
+                tipo=tipo,
+                filename=f"{file_id}.jpg",
+            )
         return bool(url)
     except Exception:
         logger.exception("falha_no_upload_da_foto", extra={"file_id": file_id})

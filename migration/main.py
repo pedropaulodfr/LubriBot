@@ -54,8 +54,8 @@ def run_migration():
     if not source_url or not target_url:
         logger.error("Erro: SOURCE_DB_URL ou SUPABASE_DB_URL não configurados no .env")
         print("\n[!] Por favor, configure as variáveis no seu arquivo .env:")
-        print("SOURCE_DB_URL=postgresql://user:pass@host:port/dbname")
-        print("SUPABASE_DB_URL=postgresql://postgres:password@db.jsjxkfczgihrfhgxxzft.supabase.co:5432/postgres")
+        print("SOURCE_DB_URL=postgresql://user:senha@host:porta/banco")
+        print("SUPABASE_DB_URL=postgresql://usuario:senha@host:porta/banco")
         return
 
     # Engines e Sessões

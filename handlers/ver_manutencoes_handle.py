@@ -170,17 +170,18 @@ def ver_manutencao_handle(bot):
                 reply_markup=ReplyKeyboardRemove(),
             )
 
-            for manutencao in manutencoes:
-                info_manutencao = _formatar_manutencao(session, manutencao)
-                keyboard = _teclado_imagens(manutencao)
-                if keyboard is not None:
-                    bot.send_message(
-                        message.chat.id, info_manutencao, reply_markup=keyboard
-                    )
-                else:
-                    bot.send_message(message.chat.id, info_manutencao)
+            itens = [
+                {
+                    "texto": _formatar_manutencao(session, manutencao),
+                    "id": manutencao.id,
+                    "imagem": bool(manutencao.imagem),
+                    "nota": bool(manutencao.imagemNotaServico),
+                }
+                for manutencao in manutencoes
+            ]
 
-        bot.send_message(message.chat.id, "Escolha uma opção:", reply_markup=menu_principal())
+        _HISTORICOS[message.chat.id] = {"itens": itens, "nav_msg_id": None}
+        _enviar_pagina(bot, message.chat.id, 0)
 
     @bot.callback_query_handler(
         func=lambda call: call.data.startswith("ver_img_")
@@ -208,6 +209,69 @@ def ver_manutencao_handle(bot):
             url = _url_imagem(manutencao.imagemNotaServico)
         bot.send_photo(call.message.chat.id, url)
         bot.answer_callback_query(call.id)
+
+    # ------------------------------------------------------------ paginação
+    @bot.callback_query_handler(func=lambda call: call.data in {"hist:prev", "hist:next"})
+    def callback_paginar_historico(call):
+        estado = _HISTORICOS.get(call.message.chat.id)
+        bot.answer_callback_query(call.id)
+        if estado is None:
+            bot.send_message(
+                call.message.chat.id,
+                "⚠️ Histórico expirado. Abra *🔎 Ver Manutenções* novamente.",
+            )
+            return
+        pagina_atual = estado.get("pagina", 0)
+        nova = pagina_atual - 1 if call.data == "hist:prev" else pagina_atual + 1
+        _enviar_pagina(bot, call.message.chat.id, nova)
+
+
+PAGINA_TAMANHO = 5
+_HISTORICOS: dict[int, dict] = {}
+
+
+def _enviar_pagina(bot, chat_id: int, pagina: int) -> None:
+    """Envia uma página de manutenções (evita 30 mensagens de uma vez)."""
+    estado = _HISTORICOS.get(chat_id)
+    if estado is None:
+        return
+
+    itens: list[dict] = estado["itens"]
+    total = len(itens)
+    total_paginas = max(1, (total + PAGINA_TAMANHO - 1) // PAGINA_TAMANHO)
+    pagina = max(0, min(pagina, total_paginas - 1))
+    estado["pagina"] = pagina
+
+    # Remove o rodapé anterior para não acumular mensagens de navegação.
+    if estado.get("nav_msg_id"):
+        try:
+            bot.delete_message(chat_id, estado["nav_msg_id"])
+        except Exception:
+            pass
+
+    inicio = pagina * PAGINA_TAMANHO
+    for item in itens[inicio : inicio + PAGINA_TAMANHO]:
+        keyboard = _teclado_imagens(item)
+        if keyboard is not None:
+            bot.send_message(chat_id, item["texto"], reply_markup=keyboard)
+        else:
+            bot.send_message(chat_id, item["texto"])
+
+    navegacao = InlineKeyboardMarkup()
+    if pagina > 0:
+        navegacao.add(InlineKeyboardButton("◀ Anterior", callback_data="hist:prev"))
+    if pagina < total_paginas - 1:
+        navegacao.add(InlineKeyboardButton("Próxima ▶", callback_data="hist:next"))
+
+    rodape = (
+        f"📄 Página {pagina + 1} de {total_paginas} · {total} manutenção(ões)"
+    )
+    mensagem = bot.send_message(
+        chat_id,
+        rodape,
+        reply_markup=navegacao if navegacao.keyboard else menu_principal(),
+    )
+    estado["nav_msg_id"] = mensagem.message_id
 
 
 def _formatar_manutencao(session, manutencao: Manutencao) -> str:
@@ -256,18 +320,18 @@ def _formatar_manutencao(session, manutencao: Manutencao) -> str:
     )
 
 
-def _teclado_imagens(manutencao: Manutencao) -> InlineKeyboardMarkup | None:
+def _teclado_imagens(item: dict) -> InlineKeyboardMarkup | None:
     """Teclado com os botões de imagem existentes (independentes entre si)."""
     botoes = []
-    if manutencao.imagem:
+    if item.get("imagem"):
         botoes.append(
-            InlineKeyboardButton("📷 Ver imagem", callback_data=f"ver_img_{manutencao.id}")
+            InlineKeyboardButton("📷 Ver imagem", callback_data=f"ver_img_{item['id']}")
         )
-    if manutencao.imagemNotaServico:
+    if item.get("nota"):
         botoes.append(
             InlineKeyboardButton(
                 "📄 Ver nota de serviço/recibo",
-                callback_data=f"ver_img_nota_servico_{manutencao.id}",
+                callback_data=f"ver_img_nota_servico_{item['id']}",
             )
         )
     if not botoes:

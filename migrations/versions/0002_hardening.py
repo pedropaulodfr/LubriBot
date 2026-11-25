@@ -84,10 +84,10 @@ def upgrade() -> None:
     op.execute(
         """
         UPDATE notificacoes
-           SET chave = tipoNotificacao || ':' || manutencao_id
+           SET chave = "tipoNotificacao" || ':' || manutencao_id
          WHERE chave IS NULL
            AND manutencao_id IS NOT NULL
-           AND tipoNotificacao IS NOT NULL
+           AND "tipoNotificacao" IS NOT NULL
         """
     )
     op.execute(

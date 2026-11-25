@@ -1,5 +1,32 @@
 # Changelog
 
+## [2.1.0-dev] — 24/11/2026 — Fase 3: experiência do Telegram
+
+### Adicionado
+- Menu principal reorganizado: "🔎 Ver Manutenções" no primeiro nível e
+  "🗂️ Mais opções" no lugar do botão `"..."` (teclados antigos continuam aceitos).
+- Comandos `/menu` (restaura o teclado), `/cancelar` (interrompe o fluxo e limpa
+  rascunhos) e `/ajuda`.
+- Sanitização de HTML da IA antes do envio (`lubribot/utils/sanitize.py`):
+  allowlist de tags, remoção de atributos e bloqueio de `javascript:`.
+- Paginação do histórico de manutenções (5 por página, botões Anterior/Próxima).
+- `DEBUG_COMMANDS` para habilitar `/teste` só em QA.
+- Validação de migrações e notificações em PostgreSQL embarcado
+  (`scripts/validate_with_embedded_pg.py`, `tests/integration/`).
+- `scripts/apply_migrations.py`: aplica baseline/hardening com verificação de schema.
+- `scripts/db_status.py`: diagnóstico somente leitura, sem expor credenciais.
+
+### Corrigido
+- Migração `0002` usava `tipoNotificacao` sem aspas; no PostgreSQL o identificador
+  virava minúsculo e a migração falhava. Detectado pelo validador embarcado.
+- `/start` agora cria usuário e envia boas-vindas numa única transação.
+- Mensagens de erro dos fluxos indicam o próximo passo, em vez de erro genérico.
+
+### Alterado
+- `DOCUMENTACAO.md` marcado como histórico; README/docs são a fonte atual.
+- Fase 3 concluída parcialmente: a migração dos arquivos de handler para
+  `lubribot/bot/` e a máquina de estados explícita ficam para o próximo incremento.
+
 ## [2.0.0-dev] — 24/11/2026 — Fase 2: fundação, notificações e persistência
 
 ### Adicionado

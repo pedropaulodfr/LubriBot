@@ -92,12 +92,23 @@ O processo sobe:
 - job de notificações em thread própria (a cada `INTERVALO_NOTIFICACAO` minutos);
 - health check `GET /ping` na porta `PORT`.
 
+Comandos no chat: `/menu` (restaura o teclado), `/cancelar` (interrompe o fluxo),
+`/ajuda`. `/teste` só existe com `DEBUG_COMMANDS=true`.
+
 ## Testes
 
 ```bash
-pytest                 # suíte atual: 94 testes, sem banco/rede
+pytest                                        # unidade, sem banco/rede
+python scripts/validate_with_embedded_pg.py   # Postgres embarcado: migrações + notificações
 ruff check .
 mypy lubribot
+```
+
+## Migrações
+
+```bash
+python scripts/db_status.py STRING_CONNECTION       # diagnóstico read-only
+python scripts/apply_migrations.py STRING_CONNECTION  # baseline/hardening + verificação
 ```
 
 ## Notificações

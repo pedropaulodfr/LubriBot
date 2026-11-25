@@ -8,6 +8,7 @@ from services.veiculos_service import get_veiculos_by_usuario
 from keyboards.menu_principal_keyboard import menu_principal
 from keyboards.veiculos_keyboard import veiculos_keyboard
 from prompts.dicas_prompt import get_dica_maintenance_prompt
+from lubribot.utils.sanitize import sanitizar_html
 from utils.envio_mensagem import send_and_delete
 
 
@@ -62,7 +63,12 @@ def ver_dica_handle(bot):
         # nos últimos 30 dias. A condição original comparava com o futuro e por
         # isso nunca expirava (dica congelada para sempre).
         if dica and dica.datacriacao and dica.datacriacao >= (datetime.date.today() - datetime.timedelta(days=30)):
-            bot.send_message(message.chat.id, dica.texto, reply_markup=menu_principal(), parse_mode='HTML')
+            bot.send_message(
+                message.chat.id,
+                sanitizar_html(dica.texto),
+                reply_markup=menu_principal(),
+                parse_mode="HTML",
+            )
             return
         else:
             send_and_delete(bot, message.chat.id, "🧠 Gerando dica personalizada para o seu veículo. Por favor, aguarde...", delay=60)
@@ -85,6 +91,6 @@ def ver_dica_handle(bot):
                 dica.datacriacao = datetime.date.today()
             session.commit()
 
-            bot.send_message(message.chat.id, resposta.text, reply_markup=menu_principal(), parse_mode='HTML')        
+            bot.send_message(message.chat.id, sanitizar_html(resposta.text), reply_markup=menu_principal(), parse_mode='HTML')        
         except:
             send_and_delete(bot, message.chat.id, "😕 Ocorreu um erro ao tentar gerar dica. Por favor, tente novamente!", reply_markup=menu_principal())        

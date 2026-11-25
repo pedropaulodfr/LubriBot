@@ -50,6 +50,11 @@ def _rascunho(chat_id: int) -> RascunhoVeiculo | None:
     return _RASCUNHOS.get(chat_id)
 
 
+def limpar_estado(chat_id: int) -> bool:
+    """Descarta o rascunho de cadastro de veículo do chat (usado por /cancelar)."""
+    return _RASCUNHOS.pop(chat_id, None) is not None
+
+
 def add_veiculo_handle(bot):
     @bot.message_handler(func=lambda message: message.text == "➕ Adicionar Veículo")
     def add_veiculo(message):

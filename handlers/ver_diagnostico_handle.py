@@ -24,6 +24,7 @@ from keyboards.veiculos_keyboard import veiculos_keyboard
 from lubribot.database.runtime import get_database
 from lubribot.models import Usuario, Veiculo, VeiculoDiagnosticos
 from lubribot.utils.logging import get_logger
+from lubribot.utils.sanitize import sanitizar_html
 from prompts.diagnosticos_prompt import get_diagnostico_prompt
 from services.veiculos_service import get_veiculos_by_usuario
 from utils.envio_mensagem import send_and_delete
@@ -38,6 +39,11 @@ LIMITE_DIARIO = 3
 
 # chat_id -> {"veiculo_id": int, "veiculo_texto": str, "problema": str, "diagnostico": str}
 _ESTADOS: dict[int, dict] = {}
+
+
+def limpar_estado(chat_id: int) -> bool:
+    """Descarta o estado de diagnóstico do chat (usado por /cancelar)."""
+    return _ESTADOS.pop(chat_id, None) is not None
 
 
 def ver_diagnostico_handle(bot):
@@ -194,7 +200,12 @@ def ver_diagnostico_handle(bot):
         estado["problema"] = problema
         estado["diagnostico"] = texto
 
-        bot.send_message(message.chat.id, texto, reply_markup=menu_principal(), parse_mode="HTML")
+        bot.send_message(
+            message.chat.id,
+            sanitizar_html(texto),
+            reply_markup=menu_principal(),
+            parse_mode="HTML",
+        )
         opcoes = markups_genericos_keyboard(
             [{"identificacao": "✅ Sim"}, {"identificacao": "❌ Não"}], "identificacao"
         )

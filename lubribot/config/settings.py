@@ -95,6 +95,7 @@ class Settings(BaseSettings):
     # ---------------------------------------------------------------- operação
     log_level: str = "INFO"
     log_json: bool = False
+    debug_commands: bool = False
     http_habilitado: bool = True
     http_host: str = "0.0.0.0"
     http_port: int = Field(default=10000, ge=1, le=65535, validation_alias="PORT")

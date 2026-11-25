@@ -37,7 +37,9 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "handlers/*" = ["T20"]      # handlers legados ainda usam print em pontos isolados
 "migration/*" = ["T20", "ARG"]
-"tests/*" = ["ARG", "PT"]
+"scripts/*" = ["T20"]       # scripts de operação imprimem saída para o usuário
+"tests/*" = ["ARG", "PT", "SIM"]
+"tests/integration/*" = ["ARG", "PT", "SIM", "PLR"]
 "migrations/env.py" = ["ARG"]
 
 [tool.mypy]

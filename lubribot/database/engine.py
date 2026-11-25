@@ -26,14 +26,14 @@ class Database:
     """Encapsula o engine e o sessionmaker de uma conexão PostgreSQL."""
 
     def __init__(self, url: str, *, settings: Settings | None = None) -> None:
-        cfg = settings or get_settings()
+        cfg = settings
         self._engine: Engine = create_engine(
             url,
-            pool_pre_ping=cfg.db_pool_pre_ping,
-            pool_size=cfg.db_pool_size,
-            max_overflow=cfg.db_max_overflow,
-            pool_recycle=cfg.db_pool_recycle_segundos,
-            echo=cfg.db_echo,
+            pool_pre_ping=cfg.db_pool_pre_ping if cfg else True,
+            pool_size=cfg.db_pool_size if cfg else 5,
+            max_overflow=cfg.db_max_overflow if cfg else 10,
+            pool_recycle=cfg.db_pool_recycle_segundos if cfg else 1800,
+            echo=cfg.db_echo if cfg else False,
             future=True,
         )
         self.session_factory: sessionmaker[Session] = sessionmaker(
@@ -46,6 +46,11 @@ class Database:
     def from_settings(cls, settings: Settings | None = None) -> Database:
         cfg = settings or get_settings()
         return cls(cfg.database_url, settings=cfg)
+
+    @classmethod
+    def from_url(cls, url: str, settings: Settings | None = None) -> Database:
+        """Cria a partir de uma URL explícita (testes, scripts, ferramentas)."""
+        return cls(url, settings=settings)
 
     @property
     def engine(self) -> Engine:

@@ -92,6 +92,23 @@ caracteres) não cabia em `varchar(8)`.
 A fase F5 move handlers para `lubribot/bot/handlers` e remove a pasta
 `services/` duplicada.
 
+## Interface do Telegram (UX)
+
+- **Menu principal** ([keyboards/menu_principal_keyboard.py](../keyboards/menu_principal_keyboard.py)):
+  7 ações em 4 linhas; histórico no primeiro nível; "🗂️ Mais opções" no lugar do
+  antigo botão `"..."`.
+- **Navegação** ([handlers/navegacao_handle.py](../handlers/navegacao_handle.py)):
+  `/menu` restaura o teclado (recupera usuário preso), `/cancelar` limpa rascunhos
+  de conversa por chat, `/ajuda` lista comandos.
+- **Rascunhos por chat**: cada fluxo com múltiplas etapas mantém
+  `dict[chat_id, Rascunho]` em memória (dados simples, não ORM). O estado não
+  sobrevive a restart — aceitável agora; a fase F5.2 migra para estado persistido.
+- **Paginação**: o histórico envia 5 manutenções por página com botões
+  Anterior/Próxima, em vez de uma mensagem por registro.
+- **HTML da IA**: todo texto gerado por modelo passa por
+  [lubribot/utils/sanitize.py](../lubribot/utils/sanitize.py) antes do envio
+  (`parse_mode="HTML"`), com allowlist de tags e bloqueio de `javascript:`.
+
 ## Testes
 
 | Tipo | Onde | Precisa de banco? |

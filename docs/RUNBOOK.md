@@ -23,6 +23,34 @@ Preencha o `.env`. Para desenvolvimento use `AMBIENTE=QA` com `TOKEN_QA` e
 
 ## 3. Banco de dados (Alembic)
 
+### 3.0 Checklist antes de migrar
+
+```bash
+python scripts/db_status.py STRING_CONNECTION     # somente leitura, sem senha na tela
+```
+
+O script mostra host/porta/banco, revisão do Alembic, colunas do outbox e
+contagens. Se a conexão falhar, o problema é de credencial/rede — não siga.
+
+Erros comuns de conexão:
+
+| Mensagem | Causa provável | Ação |
+|---|---|---|
+| `tenant/user postgres.<ref> not found` | project ref não existe mais no pooler (projeto removido, recriado ou migrado de região) | copiar a connection string atual no Dashboard → Connect |
+| `could not translate host name "db.<ref>.supabase.co"` | mesmo caso acima: projeto não resolve | idem |
+| `Connection refused` em `localhost:5433` | Postgres local não está rodando | subir o serviço local ou usar o banco de QA remoto |
+
+### 3.0.1 Aplicar com verificação (recomendado)
+
+```bash
+python scripts/apply_migrations.py STRING_CONNECTION
+```
+
+O script detecta se o banco é legado (marca `0001` sem recriar tabelas) ou vazio
+(aplica do zero), roda `upgrade head` e **verifica** o resultado (revisão `0002`,
+colunas do outbox, `status varchar(20)`). Sai com código 1 se o schema não ficar
+no estado esperado.
+
 ### 3.1 Banco já existente (produção/QA atual)
 
 O schema legado já está lá. Marque o baseline e aplique o hardening:
@@ -70,6 +98,16 @@ python main.py
 ```
 
 Sobe: long polling + job de notificações + health check `GET /ping`.
+
+Comandos disponíveis no chat:
+
+| Comando | Efeito |
+|---|---|
+| `/start` | cria/atualiza o usuário e mostra o menu |
+| `/menu` | restaura o teclado do menu principal |
+| `/cancelar` | interrompe a operação em andamento e limpa o rascunho |
+| `/ajuda` | lista os comandos |
+| `/teste` | só existe com `DEBUG_COMMANDS=true` |
 
 Variáveis que mudam o comportamento:
 
@@ -132,14 +170,16 @@ chave `ProximaManutencao:<manutencao_id>` não existir (ou ser removida).
 ## 6. Testes e qualidade
 
 ```bash
-pytest                     # 94 testes, sem banco/rede
-pytest -q tests/test_domain_maintenance.py
-ruff check .               # se instalado
-mypy lubribot              # se instalado
+pytest                                   # unidade (sem banco/rede)
+pytest tests/integration                 # exige LUBRIBOT_TEST_DATABASE_URL
+python scripts/validate_with_embedded_pg.py   # sobe Postgres temporário e roda tudo
+ruff check .
+mypy lubribot
 ```
 
-Testes de integração com Postgres (fase futura) usarão
-`LUBRIBOT_TEST_DATABASE_URL` e banco dedicado — **nunca** produção.
+O validador embarcado sobe um PostgreSQL temporário (pacote `pgserver`), aplica as
+migrações do zero, testa o fluxo de notificação ponta a ponta e valida
+`scripts/apply_migrations.py`. **Nunca** usa o banco de produção.
 
 ## 7. Deploy no servidor do J4 Core
 

@@ -1,44 +1,68 @@
-from keyboards.menu_principal_keyboard import menu_principal
-from keyboards.checkbox_genericos_keyboard import start_checkbox
-from repository.models import Usuario, _Session
+"""Comandos de entrada: /start, /teste (QA) e boas-vindas.
 
-session = _Session()
+Mudanças:
+- a mensagem de boas-vindas orienta sobre /menu e /cancelar;
+- o comando de debug `/teste` deixou de existir em produção (só com
+  ``DEBUG_COMMANDS=true``), para não expor um fluxo experimental a usuários reais.
+"""
+
+from __future__ import annotations
+
+from keyboards.checkbox_genericos_keyboard import start_checkbox
+from keyboards.menu_principal_keyboard import menu_principal
+from lubribot.config.settings import get_settings
+from lubribot.database.runtime import get_database
+from lubribot.models import Usuario
+from lubribot.utils.logging import get_logger
+
+logger = get_logger(__name__)
+
+BOAS_VINDAS = (
+    "Olá, {nome}! 👋\n\n"
+    "Escolha uma opção no teclado abaixo.\n"
+    "• /menu restaura o teclado\n"
+    "• /cancelar interrompe a operação atual\n"
+    "• /ajuda mostra todos os comandos"
+)
+
 
 def start(bot):
-    @bot.message_handler(commands=['start'])
+    @bot.message_handler(commands=["start"])
     def send_welcome(message):
-        usuario = session.query(Usuario).filter(Usuario.telegram_id == message.from_user.id).first()
-
-        if not usuario:
-            usuario = Usuario( 
-                telegram_id=message.from_user.id,
-                perfil="Proprietario",
-                primeiroNome=message.from_user.first_name or "",
-                ultimoNome=message.from_user.last_name or "",
-                usuarioNome=message.from_user.username or "",
-                status="Ativo"
+        with get_database().unit_of_work() as session:
+            usuario = (
+                session.query(Usuario)
+                .filter(Usuario.telegram_id == message.from_user.id)
+                .first()
             )
-            session.add(usuario)
-            session.commit()
-            session.refresh(usuario)
+            if not usuario:
+                usuario = Usuario(
+                    telegram_id=message.from_user.id,
+                    perfil="Proprietario",
+                    primeiroNome=message.from_user.first_name or "",
+                    ultimoNome=message.from_user.last_name or "",
+                    usuarioNome=message.from_user.username or "",
+                    status="Ativo",
+                )
+                session.add(usuario)
 
-        bot.send_message(message.chat.id, f"Olá, {message.from_user.first_name}! Escolha uma opção:", reply_markup=menu_principal())
+        bot.send_message(
+            message.chat.id,
+            BOAS_VINDAS.format(nome=message.from_user.first_name or ""),
+            reply_markup=menu_principal(),
+        )
 
-    @bot.message_handler(commands=['teste'])
-    def teste(message):
-        from services.produtos_service import get_all_produtos, get_produto_by_descricao_completa
-        produtos = get_all_produtos()
+    # ---------------------------------------------------------------- debug
+    if get_settings().debug_commands:
 
-        opcoes = []
-        for produto in produtos:
-            opcoes.append(produto.descricao_completa)
-        
-        def finalizado(chat_id, selecionadas):
-            produtos_selecionados = []
-            for desc in selecionadas:
-                produto = get_produto_by_descricao_completa(desc)
-                if produto:
-                    produtos_selecionados.append(produto.descricao)
-            bot.send_message(chat_id, f"Você escolheu: {', '.join(produtos_selecionados)}")
+        @bot.message_handler(commands=["teste"])
+        def teste(message):
+            from services.produtos_service import get_all_produtos
 
-        start_checkbox(bot, message.chat.id, opcoes, finalizado)
+            produtos = get_all_produtos()
+            opcoes = [produto.descricao_completa for produto in produtos]
+
+            def finalizado(chat_id, selecionadas):
+                bot.send_message(chat_id, f"Você escolheu: {', '.join(selecionadas)}")
+
+            start_checkbox(bot, message.chat.id, opcoes, finalizado)

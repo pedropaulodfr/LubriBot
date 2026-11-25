@@ -1,12 +1,28 @@
+"""Submenu "Mais opções": catálogo de produtos e serviços.
+
+O botão antigo era `"..."`. Para não quebrar teclados já enviados aos usuários
+(o Telegram mantém o teclado antigo no cliente), o handler aceita os dois textos.
+"""
+
+from __future__ import annotations
+
 from keyboards.markups_genericos_keyboard import markups_genericos_keyboard
 
-def mais_handle(bot):
-    @bot.message_handler(func=lambda message: message.text == "...")
-    def mais(message):
-        menu_opcoes = markups_genericos_keyboard([
-            {'identificacao': '🔎 Ver Manutenções'},
-            {'identificacao': '🛢️ Gerenciar Produtos'},
-            {'identificacao': '🧰 Gerenciar Serviços'},
-        ], "identificacao")
+TEXTOS_BOTAO = ("🗂️ Mais opções", "...")
 
-        bot.send_message(message.chat.id,"Escolha: ", reply_markup=menu_opcoes)
+
+def mais_handle(bot):
+    @bot.message_handler(func=lambda message: message.text in TEXTOS_BOTAO)
+    def mais(message):
+        opcoes = markups_genericos_keyboard(
+            [
+                {"identificacao": "🛢️ Gerenciar Produtos"},
+                {"identificacao": "🧰 Gerenciar Serviços"},
+            ],
+            "identificacao",
+        )
+        bot.send_message(
+            message.chat.id,
+            "🗂️ Mais opções — escolha uma categoria:",
+            reply_markup=opcoes,
+        )

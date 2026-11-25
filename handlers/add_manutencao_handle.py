@@ -67,6 +67,11 @@ def _rascunho(chat_id: int) -> RascunhoManutencao | None:
     return _RASCUNHOS.get(chat_id)
 
 
+def limpar_estado(chat_id: int) -> bool:
+    """Descarta o rascunho de manutenção do chat (usado por /cancelar)."""
+    return _RASCUNHOS.pop(chat_id, None) is not None
+
+
 def _reiniciar(bot, message) -> None:
     _RASCUNHOS.pop(message.chat.id, None)
     bot.send_message(

@@ -23,6 +23,7 @@ from handlers.gerenciar_produtos_handle import gerenciar_produtos_handle
 from handlers.gerenciar_servicos_handle import gerenciar_servicos_handle
 from handlers.gerenciar_veiculos_handle import gerenciar_veiculos_handle
 from handlers.mais_handle import mais_handle
+from handlers.navegacao_handle import navegacao_handle
 from handlers.start_handle import start
 from handlers.ver_diagnostico_handle import ver_diagnostico_handle
 from handlers.ver_dicas_handle import ver_dica_handle
@@ -42,6 +43,7 @@ logger = get_logger(__name__)
 def registrar_handlers(bot: TeleBot) -> None:
     """Registra todos os handlers na instância do bot (ordem preservada)."""
     start(bot)
+    navegacao_handle(bot)
     add_manutencao_handle(bot)
     ver_manutencao_handle(bot)
     add_veiculo_handle(bot)

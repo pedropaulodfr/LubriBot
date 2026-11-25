@@ -1,271 +1,547 @@
+"""Registro de manutenção.
+
+Correções em relação ao código legado:
+
+- ``manutencao``, ``manutencaoServico`` e ``manutencaoProdutos`` eram globais do
+  módulo e vazavam entre usuários (a manutenção seguinte herdava produtos da
+  anterior). Agora cada conversa tem um rascunho próprio, chaveado por chat.
+- A gravação era feita em três commits separados (manutenção, produtos,
+  serviço), deixando registro pela metade se algo falhasse no meio. Agora é uma
+  única transação.
+- O serviço era resolvido por descrição **sem filtrar o dono**, podendo vincular
+  o serviço de outro usuário. Agora resolve dentro do catálogo do usuário.
+"""
+
+from __future__ import annotations
+
 import base64 as b64
-from datetime import datetime
-from telebot.types import ReplyKeyboardRemove, ForceReply
-from repository.models import _Session, Usuario, Manutencao, ManutencaoServico, ManutencaoProduto, Servico, Veiculo, Produto
+from dataclasses import dataclass, field
+from datetime import date, datetime
+
+from telebot.types import ForceReply, ReplyKeyboardRemove
+
+from keyboards.checkbox_genericos_keyboard import start_checkbox
+from keyboards.markups_genericos_keyboard import markups_genericos_keyboard
 from keyboards.menu_principal_keyboard import menu_principal
 from keyboards.veiculos_keyboard import veiculos_keyboard
-from keyboards.markups_genericos_keyboard import markups_genericos_keyboard
-from keyboards.checkbox_genericos_keyboard import start_checkbox
-from services.veiculos_service import get_veiculos_by_usuario
-from services.servicos_service import get_all_servicos, get_servico_by_descricao
+from lubribot.database.runtime import get_database
+from lubribot.models import (
+    Manutencao,
+    ManutencaoProduto,
+    ManutencaoServico,
+    Servico,
+    Usuario,
+    Veiculo,
+)
+from lubribot.utils.logging import get_logger
 from services.produtos_service import get_all_produtos_manutencao, get_produto_by_descricao_completa
-from utils.upload_file_async import upload
+from services.veiculos_service import get_veiculos_by_usuario
+from services.servicos_service import get_all_servicos
+from utils.upload_file_async import upload as upload_s3
+
+logger = get_logger(__name__)
+
+OPCAO_OUTRO_SERVICO = "⌨️ Outro:"
 
 
-session = _Session()
-manutencao = Manutencao()
-manutencaoServico = ManutencaoServico()
-manutencaoProdutos = []
-produto = Produto()
+@dataclass
+class RascunhoManutencao:
+    """Estado da conversa de registro de manutenção."""
+
+    usuario_id: int
+    veiculo_id: int | None = None
+    data: date | None = None
+    servico_id: int | None = None
+    km: int | None = None
+    imagem: str | None = None
+    imagem_nota_servico: str | None = None
+    custo: float | None = None
+    observacao: str | None = None
+    produtos: list[int] = field(default_factory=list)
+
+
+_RASCUNHOS: dict[int, RascunhoManutencao] = {}
+
+
+def _rascunho(chat_id: int) -> RascunhoManutencao | None:
+    return _RASCUNHOS.get(chat_id)
+
+
+def _reiniciar(bot, message) -> None:
+    _RASCUNHOS.pop(message.chat.id, None)
+    bot.send_message(
+        message.chat.id,
+        "⚠️ Sua sessão de registro expirou. Toque em *🛠️ Registrar Manutenção* para começar de novo.",
+        reply_markup=menu_principal(),
+    )
+
+
+def _perguntar_custo(bot, message) -> None:
+    bot.send_message(message.chat.id, "Informe o custo do serviço (em R$):", reply_markup=ForceReply())
+    bot.register_next_step_handler(message, receber_custo)
+
+
+def _perguntar_observacoes(bot, message) -> None:
+    bot.send_message(message.chat.id, "Alguma observação a ser feita? (Opcional)", reply_markup=ForceReply())
+    bot.send_message(message.chat.id, "<i>Digite . se não quiser adicionar</i>", parse_mode="HTML")
+    bot.register_next_step_handler(message, receber_observacoes)
 
 
 def add_manutencao_handle(bot):
     @bot.message_handler(func=lambda message: message.text == "🛠️ Registrar Manutenção")
     def add_manutencao(message):
-        bot.send_message(message.chat.id,"Iniciando o processo de registro de manutenção. Por favor, envie os detalhes da manutenção.",reply_markup=ReplyKeyboardRemove())
-        # Aqui você pode adicionar lógica adicional para processar a manutenção
+        bot.send_message(
+            message.chat.id,
+            "Iniciando o processo de registro de manutenção. Por favor, envie os detalhes da manutenção.",
+            reply_markup=ReplyKeyboardRemove(),
+        )
 
-        usuario = session.query(Usuario).filter(Usuario.telegram_id == message.from_user.id).first()
-        if not usuario:
-            bot.send_message(message.chat.id, "❌ Usuário não encontrado.")
-            bot.send_message(message.chat.id, f"🔄 Clique em /start para tentar novamente.")
-            return
+        with get_database().unit_of_work(commit=False) as session:
+            usuario = (
+                session.query(Usuario)
+                .filter(Usuario.telegram_id == message.from_user.id)
+                .first()
+            )
+            if not usuario:
+                bot.send_message(message.chat.id, "❌ Usuário não encontrado.")
+                bot.send_message(message.chat.id, "🔄 Clique em /start para tentar novamente.")
+                return
+            usuario_id = usuario.id
 
-        veiculos = get_veiculos_by_usuario(usuario.id)
+        veiculos = get_veiculos_by_usuario(usuario_id)
         if not veiculos:
-            bot.send_message(message.chat.id, "❌ Nenhum veículo encontrado. Por favor, adicione um veículo primeiro.")
-            bot.send_message(message.chat.id, f"Escolha uma opção:", reply_markup=menu_principal())
+            bot.send_message(
+                message.chat.id,
+                "❌ Nenhum veículo encontrado. Por favor, adicione um veículo primeiro.",
+            )
+            bot.send_message(message.chat.id, "Escolha uma opção:", reply_markup=menu_principal())
             return
 
-        veiculos_opcoes = veiculos_keyboard(veiculos)
-
-        bot.send_message(message.chat.id, "Selecione um Veículo para manutenção: ", reply_markup=veiculos_opcoes)
+        _RASCUNHOS[message.chat.id] = RascunhoManutencao(usuario_id=usuario_id)
+        bot.send_message(
+            message.chat.id,
+            "Selecione um Veículo para manutenção:",
+            reply_markup=veiculos_keyboard(veiculos),
+        )
         bot.register_next_step_handler(message, receber_veiculo)
 
-
+    # ------------------------------------------------------------------ etapas
     def receber_veiculo(message):
-        if (message.text == "❌ Cancelar"):
-            bot.send_message(message.chat.id, "Registro de manutenção cancelado.", reply_markup=menu_principal())
-            return
-        
-        placa_selecionada = message.text.split(" - ")[0].replace("-", "")
-        veiculo = session.query(Veiculo).filter(Veiculo.placa == placa_selecionada).first()
-
-        if not veiculo:
-            bot.send_message(message.chat.id, "❌ Veículo não encontrado. Por favor, selecione um veículo válido.")
-            bot.register_next_step_handler(message, receber_veiculo)
+        rascunho = _rascunho(message.chat.id)
+        if rascunho is None:
+            _reiniciar(bot, message)
             return
 
-        manutencao.veiculo_id = veiculo.id
+        if message.text == "❌ Cancelar":
+            _RASCUNHOS.pop(message.chat.id, None)
+            bot.send_message(
+                message.chat.id,
+                "Registro de manutenção cancelado.",
+                reply_markup=menu_principal(),
+            )
+            return
 
-        data_opcoes = markups_genericos_keyboard([
-            {'identificacao': 'Hoje'},
-            {'identificacao': 'Outra Data'}
-        ], "identificacao")
+        placa_selecionada = (message.text or "").split(" - ")[0].replace("-", "").strip().upper()
+
+        with get_database().unit_of_work(commit=False) as session:
+            veiculo = (
+                session.query(Veiculo)
+                .filter(
+                    Veiculo.placa == placa_selecionada,
+                    Veiculo.usuario_id == rascunho.usuario_id,
+                    Veiculo.status == "Ativo",
+                )
+                .first()
+            )
+            if veiculo is None:
+                bot.send_message(
+                    message.chat.id,
+                    "❌ Veículo não encontrado. Por favor, selecione um veículo válido.",
+                )
+                bot.register_next_step_handler(message, receber_veiculo)
+                return
+            rascunho.veiculo_id = veiculo.id
+
+        data_opcoes = markups_genericos_keyboard(
+            [{"identificacao": "Hoje"}, {"identificacao": "Outra Data"}], "identificacao"
+        )
         bot.send_message(message.chat.id, "Data da manutenção:", reply_markup=data_opcoes)
         bot.register_next_step_handler(message, receber_opcao_data)
 
-
     def receber_opcao_data(message):
-        # Se o usuário escolher "Hoje", processamos imediatamente.
+        if _rascunho(message.chat.id) is None:
+            _reiniciar(bot, message)
+            return
+
         if message.text == "Hoje":
             receber_data(message)
             return
 
-        # Caso contrário, pedimos que informe a data e registramos o próximo passo.
-        bot.send_message(message.chat.id, "Informe a data da manutenção (DD/MM/AAAA):", reply_markup=ForceReply())
+        bot.send_message(
+            message.chat.id,
+            "Informe a data da manutenção (DD/MM/AAAA):",
+            reply_markup=ForceReply(),
+        )
         bot.register_next_step_handler(message, receber_data)
 
-
     def receber_data(message):
-        data_texto = message.text
+        rascunho = _rascunho(message.chat.id)
+        if rascunho is None:
+            _reiniciar(bot, message)
+            return
 
-        if data_texto == "Hoje":
-            manutencao.data = datetime.now().strftime("%Y-%m-%d")
-        else:
-            manutencao.data = datetime.strptime(data_texto, "%d/%m/%Y").strftime("%Y-%m-%d")
+        texto = (message.text or "").strip()
+        try:
+            if texto == "Hoje":
+                rascunho.data = date.today()
+            else:
+                rascunho.data = datetime.strptime(texto, "%d/%m/%Y").date()
+        except ValueError:
+            bot.send_message(
+                message.chat.id,
+                "❌ Data inválida. Use o formato DD/MM/AAAA (ex.: 05/02/2026):",
+                reply_markup=ForceReply(),
+            )
+            bot.register_next_step_handler(message, receber_data)
+            return
 
-        usuario = session.query(Usuario).filter(Usuario.telegram_id == message.from_user.id).first()
-        servicos_disponiveis = get_all_servicos(usuario_id=usuario.id)
-        servicos_disponiveis.append({'descricao': '⌨️ Outro: '})
-        servicos_opcoes = markups_genericos_keyboard(servicos_disponiveis, "descricao")
-        
-        bot.send_message(message.chat.id, "Descreva o serviço realizado:", reply_markup=servicos_opcoes)
+        servicos_disponiveis = list(get_all_servicos(usuario_id=rascunho.usuario_id))
+        opcoes = [{"descricao": s.descricao} for s in servicos_disponiveis if s.descricao]
+        opcoes.append({"descricao": OPCAO_OUTRO_SERVICO})
+        bot.send_message(
+            message.chat.id,
+            "Descreva o serviço realizado:",
+            reply_markup=markups_genericos_keyboard(opcoes, "descricao"),
+        )
         bot.register_next_step_handler(message, receber_servico)
 
-
     def receber_servico(message):
-        descricao_servico = message.text
+        rascunho = _rascunho(message.chat.id)
+        if rascunho is None:
+            _reiniciar(bot, message)
+            return
 
-        if (descricao_servico == "⌨️ Outro:"):
-            bot.send_message(message.chat.id, "Por favor, descreva o serviço realizado:", reply_markup=ForceReply())
+        descricao = (message.text or "").strip()
+
+        if descricao == OPCAO_OUTRO_SERVICO:
+            bot.send_message(
+                message.chat.id,
+                "Por favor, descreva o serviço realizado:",
+                reply_markup=ForceReply(),
+            )
             bot.register_next_step_handler(message, receber_descricao_servico_personalizado)
-        else:
-            manutencaoServico.servico_id = get_servico_by_descricao(descricao_servico).id
+            return
 
-            bot.send_message(message.chat.id, "Informe a quilometragem do veículo (KM):", reply_markup=ForceReply())
-            bot.register_next_step_handler(message, receber_quilometragem)
+        # Resolve somente dentro do catálogo do usuário (globais + próprios).
+        servico_id = None
+        for servico in get_all_servicos(usuario_id=rascunho.usuario_id):
+            if servico.descricao == descricao:
+                servico_id = servico.id
+                break
 
+        if servico_id is None:
+            bot.send_message(
+                message.chat.id,
+                "❌ Serviço não encontrado. Escolha uma das opções do teclado:",
+            )
+            opcoes = [
+                {"descricao": s.descricao}
+                for s in get_all_servicos(usuario_id=rascunho.usuario_id)
+                if s.descricao
+            ]
+            opcoes.append({"descricao": OPCAO_OUTRO_SERVICO})
+            bot.send_message(
+                message.chat.id,
+                "Descreva o serviço realizado:",
+                reply_markup=markups_genericos_keyboard(opcoes, "descricao"),
+            )
+            bot.register_next_step_handler(message, receber_servico)
+            return
 
-    def receber_descricao_servico_personalizado(message):
-        usuario = session.query(Usuario).filter(Usuario.telegram_id == message.from_user.id).first()
-        descricao_servico = message.text
-        novo_servico = Servico()
-        novo_servico.descricao = descricao_servico
-        novo_servico.usuario_id = usuario.id
-        novo_servico.status = "Ativo"
-        session.add(novo_servico)
-        session.commit()
-
-        manutencaoServico.servico_id = novo_servico.id
-
-        bot.send_message(message.chat.id, "Informe a quilometragem do veículo (KM):", reply_markup=ForceReply())
+        rascunho.servico_id = servico_id
+        bot.send_message(
+            message.chat.id,
+            "Informe a quilometragem do veículo (KM):",
+            reply_markup=ForceReply(),
+        )
         bot.register_next_step_handler(message, receber_quilometragem)
 
+    def receber_descricao_servico_personalizado(message):
+        rascunho = _rascunho(message.chat.id)
+        if rascunho is None:
+            _reiniciar(bot, message)
+            return
+
+        descricao = (message.text or "").strip().capitalize()
+        if not descricao:
+            bot.send_message(
+                message.chat.id,
+                "❌ Descreva o serviço realizado:",
+                reply_markup=ForceReply(),
+            )
+            bot.register_next_step_handler(message, receber_descricao_servico_personalizado)
+            return
+
+        try:
+            with get_database().unit_of_work() as session:
+                novo_servico = Servico(
+                    descricao=descricao,
+                    usuario_id=rascunho.usuario_id,
+                    status="Ativo",
+                )
+                session.add(novo_servico)
+                session.flush()
+                rascunho.servico_id = novo_servico.id
+        except Exception:
+            logger.exception("falha_ao_criar_servico_personalizado")
+            bot.send_message(
+                message.chat.id,
+                "😕 Não foi possível salvar o serviço. Tente novamente.",
+                reply_markup=menu_principal(),
+            )
+            _RASCUNHOS.pop(message.chat.id, None)
+            return
+
+        bot.send_message(
+            message.chat.id,
+            "Informe a quilometragem do veículo (KM):",
+            reply_markup=ForceReply(),
+        )
+        bot.register_next_step_handler(message, receber_quilometragem)
 
     def receber_quilometragem(message):
-        km_texto = message.text
+        rascunho = _rascunho(message.chat.id)
+        if rascunho is None:
+            _reiniciar(bot, message)
+            return
+
         try:
-            km = int(km_texto)
-            manutencao.km = km
+            rascunho.km = int((message.text or "").strip())
         except ValueError:
-            bot.send_message(message.chat.id, "❌ Formato de quilometragem inválido. Por favor, informe um valor numérico.")
+            bot.send_message(
+                message.chat.id,
+                "❌ Formato de quilometragem inválido. Por favor, informe um valor numérico.",
+                reply_markup=ForceReply(),
+            )
             bot.register_next_step_handler(message, receber_quilometragem)
             return
 
-        bot.send_message(message.chat.id, "Por favor, tire uma foto do painel mostrando a quilometragem:", reply_markup=ForceReply())
+        bot.send_message(
+            message.chat.id,
+            "Por favor, tire uma foto do painel mostrando a quilometragem:",
+            reply_markup=ForceReply(),
+        )
         bot.register_next_step_handler(message, receber_foto)
 
-
     def receber_foto(message):
-        if message.content_type != 'photo':
+        rascunho = _rascunho(message.chat.id)
+        if rascunho is None:
+            _reiniciar(bot, message)
+            return
+
+        if message.content_type != "photo":
             bot.send_message(message.chat.id, "❌ Por favor, envie uma foto válida.")
             bot.register_next_step_handler(message, receber_foto)
             return
 
-        foto_arquivo_id = message.photo[-1].file_id
-        manutencao.imagem = f"{foto_arquivo_id}.jpg"
+        file_id = message.photo[-1].file_id
+        if _enviar_para_s3(bot, message, file_id, "imagens"):
+            rascunho.imagem = f"{file_id}.jpg"
+        else:
+            bot.send_message(
+                message.chat.id,
+                "⚠️ Não foi possível salvar a foto agora. A manutenção será registrada sem ela.",
+            )
 
-        # Obtém informações sobre o arquivo (incluindo o file_path)
-        file_info = bot.get_file(foto_arquivo_id)
-        file_path = file_info.file_path
-
-        # Baixa o arquivo usando a API do Telegram
-        # bot.download_file retorna o conteúdo do arquivo em bytes
-        downloaded_file = bot.download_file(file_path)
-
-        upload(base64=b64.b64encode(downloaded_file).decode('utf-8'), tipo="imagens", filename=f"{foto_arquivo_id}.jpg")
-
-        informar_produtos_opcoes = markups_genericos_keyboard([
-            {'identificacao': 'Sim'},
-            {'identificacao': 'Não'}
-        ], "identificacao")
-        bot.send_message(message.chat.id, "Deseja informar os produtos utilizados?", reply_markup=informar_produtos_opcoes)
+        opcoes = markups_genericos_keyboard(
+            [{"identificacao": "Sim"}, {"identificacao": "Não"}], "identificacao"
+        )
+        bot.send_message(
+            message.chat.id,
+            "Deseja informar os produtos utilizados?",
+            reply_markup=opcoes,
+        )
         bot.register_next_step_handler(message, receber_resposta_mostrar_produtos)
 
-    
     def receber_resposta_mostrar_produtos(message):
+        if _rascunho(message.chat.id) is None:
+            _reiniciar(bot, message)
+            return
         if message.text == "Sim":
             mostrar_checkbox_produtos(message)
         else:
-            bot.send_message(message.chat.id, "Informe o custo do serviço (em R$):", reply_markup=ForceReply())
-            bot.register_next_step_handler(message, receber_custo)
-
+            _perguntar_custo(bot, message)
 
     def mostrar_checkbox_produtos(message):
-        usuario = session.query(Usuario).filter(Usuario.telegram_id == message.from_user.id).first()
-        produtos = get_all_produtos_manutencao(usuario.id)
+        rascunho = _rascunho(message.chat.id)
+        if rascunho is None:
+            _reiniciar(bot, message)
+            return
 
-        opcoes = []
-        for produto in produtos:
-            opcoes.append(produto.descricao_completa)
-        
-        def finalizado(chat_id, selecionadas):
-            for desc in selecionadas:
-                produto = get_produto_by_descricao_completa(desc)
-                if produto:
-                    manutencaoProdutos.append(produto)
+        produtos = get_all_produtos_manutencao(rascunho.usuario_id)
+        opcoes = [p.descricao_completa for p in produtos]
 
-            bot.send_message(message.chat.id, "Informe o custo do serviço (em R$):", reply_markup=ForceReply())
-            bot.register_next_step_handler(message, receber_custo)
+        if not opcoes:
+            bot.send_message(
+                message.chat.id,
+                "⚠️ Você ainda não possui produtos cadastrados.",
+            )
+            _perguntar_custo(bot, message)
+            return
+
+        def finalizado(chat_id: int, selecionadas: list[str]) -> None:
+            ids: list[int] = []
+            for descricao_completa in selecionadas:
+                produto = get_produto_by_descricao_completa(descricao_completa)
+                if produto is not None:
+                    ids.append(produto.id)
+            if chat_id in _RASCUNHOS:
+                _RASCUNHOS[chat_id].produtos = ids
+            _perguntar_custo(bot, message)
 
         start_checkbox(bot, message.chat.id, opcoes, finalizado)
 
-
     def receber_custo(message):
-        custo_texto = message.text
+        rascunho = _rascunho(message.chat.id)
+        if rascunho is None:
+            _reiniciar(bot, message)
+            return
+
         try:
-            custo = float(custo_texto.replace(",", "."))
-            manutencao.custo = custo
+            rascunho.custo = float((message.text or "").replace(",", "."))
         except ValueError:
-            bot.send_message(message.chat.id, "❌ Formato de custo inválido. Por favor, informe um valor numérico.")
+            bot.send_message(
+                message.chat.id,
+                "❌ Formato de custo inválido. Por favor, informe um valor numérico.",
+                reply_markup=ForceReply(),
+            )
             bot.register_next_step_handler(message, receber_custo)
             return
 
-        bot.send_message(message.chat.id, "Alguma observação a ser feita? (Opcional)", reply_markup=ForceReply())
-        bot.send_message(message.chat.id, "<i>Digite . se não quiser adicionar</i>", parse_mode='HTML')
-        bot.register_next_step_handler(message, receber_obervacoes)
+        _perguntar_observacoes(bot, message)
 
-    def receber_obervacoes(message):
-        observacoes_texto = message.text
-        manutencao.observacao = observacoes_texto if observacoes_texto != "." else None
+    def receber_observacoes(message):
+        rascunho = _rascunho(message.chat.id)
+        if rascunho is None:
+            _reiniciar(bot, message)
+            return
 
-        informar_nota_servico_opcoes = markups_genericos_keyboard([
-            {'identificacao': 'Sim'},
-            {'identificacao': 'Não'}
-        ], "identificacao")
-        
-        bot.send_message(message.chat.id, "Deseja anexar a nota de serviço ou recibo?", reply_markup=informar_nota_servico_opcoes)
+        texto = (message.text or "").strip()
+        rascunho.observacao = None if texto in {"", "."} else texto[:100]
+
+        opcoes = markups_genericos_keyboard(
+            [{"identificacao": "Sim"}, {"identificacao": "Não"}], "identificacao"
+        )
+        bot.send_message(
+            message.chat.id,
+            "Deseja anexar a nota de serviço ou recibo?",
+            reply_markup=opcoes,
+        )
         bot.register_next_step_handler(message, receber_resposta_adicionar_nota_servico)
 
-    
     def receber_resposta_adicionar_nota_servico(message):
+        if _rascunho(message.chat.id) is None:
+            _reiniciar(bot, message)
+            return
         if message.text == "Sim":
-            bot.send_message(message.chat.id, "Por favor, envie a foto da nota/recibo:", reply_markup=ForceReply())
+            bot.send_message(
+                message.chat.id,
+                "Por favor, envie a foto da nota/recibo:",
+                reply_markup=ForceReply(),
+            )
             bot.register_next_step_handler(message, receber_foto_recibo)
         else:
             finalizar_registro(message)
 
-    
     def receber_foto_recibo(message):
-        if message.content_type != 'photo':
-            bot.send_message(message.chat.id, "❌ Por favor, envie uma foto válida.")
-            bot.register_next_step_handler(message, receber_foto)
+        rascunho = _rascunho(message.chat.id)
+        if rascunho is None:
+            _reiniciar(bot, message)
             return
 
-        foto_arquivo_id = message.photo[-1].file_id
-        manutencao.imagemNotaServico = f"{foto_arquivo_id}.jpg"
+        if message.content_type != "photo":
+            bot.send_message(message.chat.id, "❌ Por favor, envie uma foto válida.")
+            bot.register_next_step_handler(message, receber_foto_recibo)
+            return
 
-        # Obtém informações sobre o arquivo (incluindo o file_path)
-        file_info = bot.get_file(foto_arquivo_id)
-        file_path = file_info.file_path
-
-        # Baixa o arquivo usando a API do Telegram
-        # bot.download_file retorna o conteúdo do arquivo em bytes
-        downloaded_file = bot.download_file(file_path)
-
-        upload(base64=b64.b64encode(downloaded_file).decode('utf-8'), tipo="imagens", filename=f"{foto_arquivo_id}.jpg")
+        file_id = message.photo[-1].file_id
+        if _enviar_para_s3(bot, message, file_id, "imagens"):
+            rascunho.imagem_nota_servico = f"{file_id}.jpg"
 
         finalizar_registro(message)
 
-
+    # ------------------------------------------------------------------ gravação
     def finalizar_registro(message):
+        rascunho = _rascunho(message.chat.id)
+        if rascunho is None:
+            _reiniciar(bot, message)
+            return
+
+        if rascunho.veiculo_id is None or rascunho.data is None or rascunho.servico_id is None:
+            bot.send_message(
+                message.chat.id,
+                "❌ Faltam dados essenciais para registrar a manutenção. Recomece o registro.",
+                reply_markup=menu_principal(),
+            )
+            _RASCUNHOS.pop(message.chat.id, None)
+            return
+
         bot.send_message(message.chat.id, "⏳ Gravando Manutenção...")
-        manutencao.status = "Finalizada"
-        session.add(manutencao)
-        session.commit()
+        try:
+            with get_database().unit_of_work() as session:
+                manutencao = Manutencao(
+                    data=rascunho.data,
+                    veiculo_id=rascunho.veiculo_id,
+                    km=rascunho.km,
+                    observacao=rascunho.observacao,
+                    status="Finalizada",
+                    custo=rascunho.custo,
+                    imagem=rascunho.imagem,
+                    imagemNotaServico=rascunho.imagem_nota_servico,
+                )
+                session.add(manutencao)
+                session.flush()
 
-        for produto in manutencaoProdutos:
-            manutencaoProduto = ManutencaoProduto()
-            manutencaoProduto.manutencao_id = manutencao.id
-            manutencaoProduto.produto_id = produto.id
-            session.add(manutencaoProduto)
-            session.commit()
+                session.add(
+                    ManutencaoServico(
+                        manutencao_id=manutencao.id, servico_id=rascunho.servico_id
+                    )
+                )
+                for produto_id in rascunho.produtos:
+                    session.add(
+                        ManutencaoProduto(
+                            manutencao_id=manutencao.id, produto_id=produto_id
+                        )
+                    )
+        except Exception:
+            logger.exception(
+                "falha_ao_registrar_manutencao",
+                extra={"veiculo_id": rascunho.veiculo_id, "usuario_id": rascunho.usuario_id},
+            )
+            bot.send_message(
+                message.chat.id,
+                "😕 Não foi possível registrar a manutenção. Nenhum dado foi gravado. Tente novamente.",
+                reply_markup=menu_principal(),
+            )
+            _RASCUNHOS.pop(message.chat.id, None)
+            return
 
-        manutencaoServico.manutencao_id = manutencao.id
-        session.add(manutencaoServico)
-        session.commit()
-
+        _RASCUNHOS.pop(message.chat.id, None)
         bot.send_message(message.chat.id, "✅ Manutenção registrada com sucesso!")
-        bot.send_message(message.chat.id, f"Escolha uma opção:", reply_markup=menu_principal())
+        bot.send_message(message.chat.id, "Escolha uma opção:", reply_markup=menu_principal())
 
+
+def _enviar_para_s3(bot, message, file_id: str, tipo: str) -> bool:
+    """Baixa a foto do Telegram e envia ao S3; retorna se deu certo."""
+    try:
+        informacoes = bot.get_file(file_id)
+        conteudo = bot.download_file(informacoes.file_path)
+        url = upload_s3(
+            base64=b64.b64encode(conteudo).decode("utf-8"),
+            tipo=tipo,
+            filename=f"{file_id}.jpg",
+        )
+        return bool(url)
+    except Exception:
+        logger.exception("falha_no_upload_da_foto", extra={"file_id": file_id})
+        return False

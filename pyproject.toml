@@ -1,0 +1,57 @@
+[project]
+name = "lubribot"
+version = "2.0.0.dev0"
+description = "Bot de Telegram para gestão de manutenção de veículos"
+requires-python = ">=3.12"
+dependencies = [
+    "alembic==1.16.5",
+    "boto3==1.41.3",
+    "google-generativeai==0.8.5",
+    "psycopg2-binary==2.9.10",
+    "pydantic==2.11.3",
+    "pydantic-settings==2.10.1",
+    "python-dotenv==1.2.1",
+    "pyTelegramBotAPI==4.26.0",
+    "SQLAlchemy==2.0.44",
+    "vpic-api==0.7.4",
+]
+
+[project.optional-dependencies]
+dev = ["mypy==1.15.0", "pytest==8.4.2", "ruff==0.9.10"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+exclude = ['(^|/)(\.venv|\.opencode)/', '^migrations/versions/']
+# Camada legada fica fora do lint até a fase F5 (migração dos handlers).
+extend-exclude = ['handlers', 'services', 'keyboards', 'prompts', 'utils', 'migration', 'repository']
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "C4", "PIE", "RET", "ARG", "T20", "PT"]
+ignore = [
+    "E501",   # comprimento de linha: formatação visual
+    "B008",   # chamadas em default (padrão do pyTelegramBotAPI)
+    "PT011",  # pytest.raises amplo em testes de configuração
+]
+
+[tool.ruff.lint.per-file-ignores]
+"handlers/*" = ["T20"]      # handlers legados ainda usam print em pontos isolados
+"migration/*" = ["T20", "ARG"]
+"tests/*" = ["ARG", "PT"]
+"migrations/env.py" = ["ARG"]
+
+[tool.mypy]
+python_version = "3.12"
+warn_unused_ignores = true
+warn_redundant_casts = true
+ignore_missing_imports = true
+exclude = ['(^|/)(\.venv|\.opencode)/', '^migrations/versions/']
+
+[[tool.mypy.overrides]]
+module = ["telebot.*", "google.generativeai.*", "vpic.*", "boto3.*", "botocore.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"

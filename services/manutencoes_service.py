@@ -1,18 +1,39 @@
-from repository.models import Manutencao, Veiculo, Usuario,  ManutencaoServico, _Session
+"""Consultas de manutenção.
 
-def get_manutencoes_by_usuario(usuario_id):
+Correção: as consultas usavam ``join(ManutencaoServico)``, um inner join que
+**escondia** manutenções sem serviço vinculado (dado legado ou registro
+incompleto). Agora o filtro é direto na manutenção, preservando o ordenamento por
+data do comportamento original.
+"""
+
+from __future__ import annotations
+
+from lubribot.models import Manutencao, Veiculo
+from repository.models import _Session
+
+
+def get_manutencoes_by_usuario(usuario_id: int) -> list[Manutencao]:
     session = _Session()
     try:
-        manutencoes = session.query(Manutencao).join(ManutencaoServico).join(Veiculo).join(Usuario).filter(Usuario.id == usuario_id).order_by(Manutencao.data).all()
-        return manutencoes
+        return (
+            session.query(Manutencao)
+            .join(Veiculo, Veiculo.id == Manutencao.veiculo_id)
+            .filter(Veiculo.usuario_id == usuario_id)
+            .order_by(Manutencao.data)
+            .all()
+        )
     finally:
         session.close()
 
 
-def get_manutencoes_by_veiculos(veiculo_id):
+def get_manutencoes_by_veiculos(veiculo_id: int) -> list[Manutencao]:
     session = _Session()
     try:
-        manutencoes = session.query(Manutencao).join(ManutencaoServico).join(Veiculo).join(Usuario).filter(Manutencao.veiculo_id == veiculo_id).order_by(Manutencao.data).all()
-        return manutencoes
+        return (
+            session.query(Manutencao)
+            .filter(Manutencao.veiculo_id == veiculo_id)
+            .order_by(Manutencao.data)
+            .all()
+        )
     finally:
         session.close()

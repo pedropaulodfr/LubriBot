@@ -1,34 +1,52 @@
-from sqlalchemy import text
-from repository.models import _Session, Notificacao, Usuario
+"""Compatibilidade da API antiga de notificações.
 
-session = _Session()
+A lógica saiu do banco (procedure não versionada) para Python puro, testável e
+idempotente. Este módulo mantém as duas funções que o código antigo chamava, para
+que imports existentes não quebrem durante a transição.
 
-def ProcessarNotificacoes():
-    # Lógica para processar notificações
-    print("Processando notificações...")
-    session = _Session()
-    try:
-        session.execute(text('CALL public."sp_CriarNotificacaoProximaManutencao"()'))
-        session.commit()
-    except Exception as e:
-        session.rollback()
-        print("Erro ao processar notificações:", e)
-    finally:
-        session.close()
+Para uso novo, prefira :class:`lubribot.jobs.notification_job.NotificationJob`.
+"""
 
-def EnviaNotificacoes(bot):
-    # Lógica para enviar notificações aos usuários
-    print("Enviando notificações aos usuários...")
-    session = _Session()
-    try:
-        notificacoes = session.query(Notificacao).filter(Notificacao.status == "Pendente").all()
-        for notificacao in notificacoes:
-            usuarioNotificacao = session.query(Usuario).filter(Usuario.id == notificacao.usuario_id).first()
-            notificacao.status = "Enviada"
-            session.commit()
-            bot.send_message(usuarioNotificacao.telegram_id, notificacao.conteudo)
+from __future__ import annotations
 
-    except Exception as e:
-        print("Erro ao enviar notificações:", e)
-    finally:
-        session.close()
+from lubribot.config.settings import get_settings
+from lubribot.database.runtime import get_database
+from lubribot.domain.notifications import RetryPolicy
+from lubribot.integrations.telegram_sender import TelegramSender
+from lubribot.notifications.dispatcher import NotificationDispatcher
+from lubribot.notifications.models import DispatchResult, PlanningResult
+from lubribot.notifications.planner import NotificationPlanner
+from lubribot.repositories.notification_repository import (
+    SQLAlchemyNotificationRepository,
+)
+from lubribot.utils.logging import get_logger
+
+logger = get_logger(__name__)
+
+
+def ProcessarNotificacoes() -> PlanningResult:
+    """Gera as notificações devidas (equivalente à antiga procedure)."""
+    settings = get_settings()
+    db = get_database()
+    with db.unit_of_work() as session:
+        planner = NotificationPlanner(
+            SQLAlchemyNotificationRepository(session),
+            intervalo_padrao_dias=settings.intervalo_manutencao_padrao_dias,
+        )
+        return planner.planejar()
+
+
+def EnviaNotificacoes(bot) -> DispatchResult:
+    """Envia as notificações pendentes com retentativa controlada."""
+    settings = get_settings()
+    db = get_database()
+    with db.unit_of_work() as session:
+        dispatcher = NotificationDispatcher(
+            SQLAlchemyNotificationRepository(session),
+            TelegramSender(bot),
+            retry_policy=RetryPolicy(
+                max_tentativas=settings.notificacoes_max_tentativas,
+                base_segundos=settings.notificacoes_backoff_base_segundos,
+            ),
+        )
+        return dispatcher.despachar()

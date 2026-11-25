@@ -58,7 +58,10 @@ def ver_dica_handle(bot):
         usuario = session.query(Usuario).filter(Usuario.telegram_id == message.from_user.id).first()
         dica = session.query(VeiculoDica).join(Veiculo).filter(Veiculo.placa == placa, Veiculo.usuario_id == usuario.id).first()
 
-        if (dica and dica.datacriacao <= (datetime.date.today() + datetime.timedelta(days=30))):
+        # Cache válido por 30 dias: a dica é reaproveitada somente se foi gerada
+        # nos últimos 30 dias. A condição original comparava com o futuro e por
+        # isso nunca expirava (dica congelada para sempre).
+        if dica and dica.datacriacao and dica.datacriacao >= (datetime.date.today() - datetime.timedelta(days=30)):
             bot.send_message(message.chat.id, dica.texto, reply_markup=menu_principal(), parse_mode='HTML')
             return
         else:

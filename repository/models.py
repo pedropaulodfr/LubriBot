@@ -1,167 +1,36 @@
-import os
-from sqlalchemy import create_engine, Column, Integer, Float, String, ForeignKey, Date, Text, Boolean
-from sqlalchemy.orm import sessionmaker, declarative_base, relationship
-from dotenv import load_dotenv, find_dotenv
+"""Compatibilidade com os handlers legados.
 
-# carrega .env (se existir)
-load_dotenv(find_dotenv())
+Os modelos agora vivem em :mod:`lubribot.models` (fonte única) e a sessão vem do
+pool gerenciado em :mod:`lubribot.database`. Este módulo existe apenas para que os
+imports antigos (``from repository.models import Usuario, _Session``) continuem
+funcionando durante a migração incremental da fase F5.
 
-STRING_CONNECTION = os.getenv('STRING_CONNECTION') if os.getenv('AMBIENTE') == "PRODUÇÃO" else os.getenv('STRING_CONNECTION_LOCAL')
+Diferenças importantes em relação ao arquivo antigo:
+- **não** roda ``Base.metadata.create_all`` no import (o schema é do Alembic);
+- não cria um engine próprio (o pool é compartilhado com o resto da aplicação).
+"""
 
-engine = create_engine(STRING_CONNECTION)
-Base = declarative_base()
-_Session = sessionmaker(engine)
+from __future__ import annotations
 
-class Usuario(Base):
-    __tablename__ = 'usuarios'
-    
-    id = Column(Integer, primary_key=True)
-    telegram_id = Column(Integer)
-    perfil = Column(String(12))
-    primeiroNome = Column(String(50))
-    ultimoNome = Column(String(50))
-    usuarioNome = Column(String(50))
-    CPF = Column(String(14))
-    foto = Column(String(1000))
-    email = Column(String(50))
-    telefone = Column(String(11))
-    status = Column(String(8))
+from sqlalchemy.orm import Session
+
+from lubribot.database.runtime import get_database
+from lubribot.models import *  # noqa: F401,F403 (reexporta todos os modelos)
+from lubribot.models import Base  # noqa: F401
 
 
-class UsuarioParametro(Base):
-    __tablename__ = 'usuarioparametros'
-    
-    id = Column(Integer, primary_key=True)
-    usuario_id = Column(Integer, ForeignKey('usuarios.id'))
-    receberNotificacoes = Column(Boolean)
-    diasNotificacao = Column(Integer)
+class _LazySessionFactory:
+    """Callable que devolve uma sessão do pool no momento do uso."""
 
-    usuario = relationship("Usuario", backref="parametros", lazy='subquery')
-
-class Veiculo(Base):
-    __tablename__ = 'veiculos'
-    
-    id = Column(Integer, primary_key=True)
-    usuario_id = Column(Integer, ForeignKey('usuarios.id'))
-    tipo = Column(String(20))
-    placa = Column(String(7))
-    renavam = Column(String(11))
-    fabricante = Column(String(50))
-    modelo = Column(String(50))
-    anoModelo = Column(String(4))
-    anoFabricacao = Column(String(4))
-    cor = Column(String(20))
-    status = Column(String(8))
-
-    usuario = relationship("Usuario", backref="veiculos", lazy='subquery')
-
-class VeiculoDica(Base):
-    __tablename__ = 'veiculodica'
-    
-    id = Column(Integer, primary_key=True)
-    veiculo_id = Column(Integer, ForeignKey('veiculos.id'))
-    texto = Column(Text)
-    datacriacao = Column(Date)
-
-    veiculo = relationship("Veiculo", backref="veiculodica", lazy='subquery')
-
-class VeiculoDiagnosticos(Base):
-    __tablename__ = 'veiculodiagnosticos'
-    
-    id = Column(Integer, primary_key=True)
-    veiculo_id = Column(Integer, ForeignKey('veiculos.id'))
-    problema = Column(Text)
-    diagnostico = Column(Text)
-    datacriacao = Column(Date)
-    resolvido = Column(Boolean)
-    util = Column(Boolean)
-
-    veiculo = relationship("Veiculo", backref="veiculodiagnosticos", lazy='subquery')
-
-class Manutencao(Base):
-    __tablename__ = 'manutencoes'
-    
-    id = Column(Integer, primary_key=True)
-    data = Column(Date)
-    veiculo_id = Column(Integer, ForeignKey('veiculos.id'))
-    km = Column(Integer)
-    observacao = Column(String(100))
-    status = Column(String(10))
-    custo = Column(Float)
-    imagem = Column(Text)
-    imagemNotaServico = Column(Text)
-
-    veiculo = relationship("Veiculo", backref="manutencoes", lazy='subquery')
-
-class ManutencaoServico(Base):
-    __tablename__ = 'manutencaoservicos'
-    
-    id = Column(Integer, primary_key=True)
-    manutencao_id = Column(Integer, ForeignKey('manutencoes.id'))
-    servico_id = Column(Integer, ForeignKey('servicos.id'))
-
-    manutencao = relationship("Manutencao", backref="manutencaoservicos", lazy='subquery')
-    servico = relationship("Servico", backref="manutencaoservicos", lazy='subquery')
+    def __call__(self) -> Session:
+        return get_database().session()
 
 
-class ManutencaoProduto(Base):
-    __tablename__ = 'manutencaoprodutos'
-    
-    id = Column(Integer, primary_key=True)
-    manutencao_id = Column(Integer, ForeignKey('manutencoes.id'))
-    produto_id = Column(Integer, ForeignKey('produtos.id'))
-
-    manutencao = relationship("Manutencao", backref="manutencaoprodutos", lazy='subquery')
-    produto = relationship("Produto", backref="manutencaoprodutos", lazy='subquery')
+_Session = _LazySessionFactory()
 
 
-class Servico(Base):
-    __tablename__ = 'servicos'
-    
-    id = Column(Integer, primary_key=True)
-    descricao = Column(String(50))
-    status = Column(String(8))
-    usuario_id = Column(Integer, ForeignKey('usuarios.id'))
-    
-    usuario = relationship("Usuario", backref="servicos", lazy='subquery')
-
-class Produto(Base):
-    __tablename__ = 'produtos'
-    
-    id = Column(Integer, primary_key=True)
-    descricao = Column(String(50))
-    status = Column(String(8))
-    usuario_id = Column(Integer, ForeignKey('usuarios.id'))
-    
-    usuario = relationship("Usuario", backref="produtos", lazy='subquery')
-
-class ServicoProduto(Base):
-    __tablename__ = 'servicoprodutos'
-    
-    id = Column(Integer, primary_key=True)
-    servico_id = Column(Integer, ForeignKey('servicos.id'))
-    produto_id = Column(Integer, ForeignKey('produtos.id'))
-
-    servico = relationship("Servico", backref="servicoprodutos", lazy='subquery')
-    produto = relationship("Produto", backref="servicoprodutos", lazy='subquery')
-
-class Notificacao(Base):
-    __tablename__ = 'notificacoes'
-    
-    id = Column(Integer, primary_key=True)
-    dataNotificacao = Column(Date)
-    tipoNotificacao = Column(String(20))
-    usuario_id = Column(Integer, ForeignKey('usuarios.id'))
-    servico_id = Column(Integer, ForeignKey('servicos.id'))
-    manutencao_id = Column(Integer, ForeignKey('manutencoes.id'))
-    veiculo_id = Column(Integer, ForeignKey('veiculos.id'))
-    titulo = Column(String(100))
-    conteudo = Column(Text)
-    status = Column(String(8))
-
-    usuario = relationship("Usuario", backref="notificacoes", lazy='subquery')
-    servico = relationship("Servico", backref="notificacoes", lazy='subquery')
-    veiculo = relationship("Veiculo", backref="notificacoes", lazy='subquery')
-    manutencao = relationship("Manutencao", backref="notificacoes", lazy='subquery')
-
-Base.metadata.create_all(engine)    
+def __getattr__(nome: str):
+    """Resolve ``engine`` sob demanda, sem abrir conexão na importação."""
+    if nome == "engine":
+        return get_database().engine
+    raise AttributeError(f"módulo {__name__!r} não tem atributo {nome!r}")

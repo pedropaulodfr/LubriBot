@@ -1,0 +1,28 @@
+# LubriBot em container (J4 Core com Docker).
+#
+# 1. copie .env.production.example para .env e preencha (ou aponte env_file)
+# 2. docker compose -f deploy/docker-compose.yml up -d --build
+# 3. docker compose -f deploy/docker-compose.yml logs -f
+services:
+  lubribot:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: lubribot:latest
+    container_name: lubribot
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    ports:
+      - "127.0.0.1:10000:10000"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:10000/ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

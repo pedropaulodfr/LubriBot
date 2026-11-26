@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.6.0] — 25/11/2026 — Pacote de deploy para o J4 Core
+
+### Adicionado
+- `deploy/install.sh`: instalador Linux/systemd idempotente (usuário de serviço,
+  venv, `/etc/lubribot/lubribot.env` 600, migração opcional, systemd habilitado).
+- `deploy/lubribot.service`: unit endurecida (`NoNewPrivileges`, `ProtectSystem`,
+  `SIGTERM` gracioso, `Restart=on-failure`).
+- `deploy/Dockerfile` e `deploy/docker-compose.yml` (usuário não-root, healthcheck).
+- `scripts/build_release.ps1`: gera `dist/*.tar.gz` + SHA256 sem `.env`, venv,
+  `.git`, dumps ou bytecode.
+- `deploy/README.md` com os dois caminhos, primeiro boot seguro
+  (`NOTIFICACOES_HABILITADAS=false`) e verificação.
+
+### Observação
+A execução no servidor depende de acesso (host + chave SSH ou Docker), que ainda
+não foi fornecido. O pacote está pronto e validado localmente.
+
 ## [2.5.0] — 25/11/2026 — Notificação por KM, produção configurada e limpeza
 
 ### Adicionado

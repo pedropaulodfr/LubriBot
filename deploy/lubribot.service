@@ -1,0 +1,28 @@
+[Unit]
+Description=LubriBot - bot de manutencao veicular (Telegram)
+Documentation=https://github.com/pedropaulodfr/LubriBot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=lubribot
+Group=lubribot
+WorkingDirectory=/opt/lubribot
+EnvironmentFile=/etc/lubribot/lubribot.env
+ExecStart=/opt/lubribot/.venv/bin/python main.py
+Restart=on-failure
+RestartSec=10
+KillSignal=SIGTERM
+TimeoutStopSec=45
+
+# Endurecimento
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/opt/lubribot
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

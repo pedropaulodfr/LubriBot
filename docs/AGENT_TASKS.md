@@ -69,6 +69,15 @@ Status: ✅ concluído · 🚧 em andamento · ⬜ pendente · 🧱 bloqueado
 | T-505 | `AMBIENTE=PRODUÇÃO` no `.env` | Operação | `.env` (ignorado no Git) | ✅ |
 | T-506 | Apagar `migration_data.sql` e `migration.log` do disco | Segurança | disco | ✅ |
 
+## Fase 7 (pacote pronto; execução bloqueada por acesso)
+
+| ID | Tarefa | Dono | Escopo | Status |
+|---|---|---|---|---|
+| T-601 | Instalador systemd + unit endurecida | Operação | `deploy/` | ✅ |
+| T-602 | Dockerfile + compose | Operação | `deploy/` | ✅ |
+| T-603 | Script de release (tar.gz + SHA256, sem segredos) | Operação | `scripts/build_release.ps1` | ✅ |
+| T-604 | Instalar e validar no servidor J4 Core | Operação | servidor | 🧱 bloqueado (sem acesso) |
+
 ## Fase 3.1 (próximo incremento)
 
 | ID | Tarefa | Dono | Depende de | Complexidade |

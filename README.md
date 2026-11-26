@@ -143,5 +143,6 @@ proxima_data = ultima_manutencao.data + max(intervaloDias dos serviços)
 - [Roadmap](docs/ROADMAP.md)
 - [Changelog](docs/CHANGELOG.md)
 - [Runbook (instalação, migração, operação)](docs/RUNBOOK.md)
+- [Deploy no servidor (systemd ou Docker)](deploy/README.md)
 - [Equipe de agentes](docs/AGENT_TEAM.md) · [Quadro de tarefas](docs/AGENT_TASKS.md)
 - `DOCUMENTACAO.md` é o documento histórico da versão anterior (parcialmente desatualizado).

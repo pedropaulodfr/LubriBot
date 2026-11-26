@@ -201,6 +201,18 @@ migrações do zero, testa o fluxo de notificação ponta a ponta e valida
 
 ## 7. Deploy no servidor do J4 Core
 
+**Caminho automatizado:** use [deploy/README.md](../deploy/README.md).
+
+```bash
+# na máquina local: gera dist/lubribot-release-*.tar.gz sem segredos
+powershell -NoProfile -File scripts/build_release.ps1
+# no servidor: instala (systemd) e, se quiser, migra e inicia
+sudo ./deploy/install.sh --migrate --start
+```
+
+Há também `deploy/Dockerfile` + `deploy/docker-compose.yml` para servidor com
+Docker. O exemplo systemd abaixo fica como referência manual.
+
 Alvo definido: VPS/container próprio. Sem Railway/Render.
 
 ### 7.1 Serviço systemd (exemplo)

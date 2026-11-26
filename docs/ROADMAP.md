@@ -7,7 +7,7 @@ Legenda: ✅ concluído · 🚧 em andamento · ⬜ pendente · 🧱 bloqueado p
 | F0 | Congelamento, branch e higiene do repositório | ✅ | P |
 | F1 | Testes de caracterização e regras de domínio | ✅ | M |
 | F2 | Fundação: config validada, logging, unidade de trabalho | ✅ | M |
-| F3 | Persistência: modelos únicos, Alembic, índices, unicidade | ✅ | G |
+| F3 | Persistência: modelos únicos, Alembic, índices, unicidade | ✅ aplicado no banco real (revisão 0003) | G |
 | F4 | Notificações confiáveis em Python (outbox, retry, lock) | ✅ | G |
 | F5 | Migração dos fluxos do Telegram e UX | 🚧 | M |
 | F6 | Performance: medições, pool, I/O fora do polling | 🚧 | M |
@@ -85,8 +85,12 @@ Pendente (próximo incremento):
 
 ## F8 — Documentação
 
-- Manter README/docs a cada entrega; runbook de operação no servidor do J4 Core.
+- ✅ Manter README/docs a cada entrega; runbook de operação com pooler do Supabase.
 - Registrar decisões novas como ADR em `docs/DECISIONS.md`.
+- ⬜ Validar a regra de notificação reconstruída com casos reais do dono
+  (a procedure original não está no repositório).
+- ⬜ Definir `AMBIENTE` que o servidor do J4 Core usará (`PRODUÇÃO` seleciona o
+  DSN do Supabase já configurado no `.env`).
 
 ## Ideias para depois (não autorizadas)
 

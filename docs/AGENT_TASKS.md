@@ -85,7 +85,7 @@ Status: ✅ concluído · 🚧 em andamento · ⬜ pendente · 🧱 bloqueado
 | T-305 | Medição de tempo de Gemini/S3 | Performance | `lubribot/utils/timing.py` | ✅ |
 | T-306 | Limpeza do histórico Git (PII/bytecode) | Segurança | `.git` + remoto | ✅ |
 | T-307 | Backup do histórico antes da reescrita | Segurança | `Backups/history-backup-20261125.bundle` | ✅ |
-| T-308 | Aplicar migrações no banco real | Banco | banco do dono | 🧱 bloqueado (sem DSN válido) |
+| T-308 | Aplicar migrações no banco real | Banco | banco do dono | ✅ (revisão 0003) |
 | T-309 | Máquina de estados persistida por chat | UX/Python | `lubribot/bot/` | ⬜ |
 | T-310 | Rotação do token no BotFather | Dono | — | ⬜ (adiada pelo dono) |
 
@@ -93,6 +93,6 @@ Status: ✅ concluído · 🚧 em andamento · ⬜ pendente · 🧱 bloqueado
 
 | Bloqueio | Efeito | Dono | Ação |
 |---|---|---|---|
-| Nenhuma connection string válida nos arquivos: pooler Supabase responde `tenant/user not found`; host direto não resolve; Aiven (`SOURCE_DB_URL`) não resolve; `localhost:5433` desligado | migrações não aplicadas no banco real | dono | enviar a connection string atual do banco em uso (Supabase Dashboard → Connect) |
 | Corpo da procedure `sp_CriarNotificacaoProximaManutencao` desconhecido | impossível comparar regra original com a reconstruída | dono do produto | validar cálculo com casos reais |
 | Rotação do token | token antigo potencialmente válido | dono | BotFather → Revoke (adiado por decisão do dono) |
+| Rotação da senha do banco | senha foi compartilhada no chat durante a migração | dono | Supabase → Database → Reset password, quando puder |

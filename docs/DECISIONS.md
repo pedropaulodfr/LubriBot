@@ -37,6 +37,10 @@ entre os serviços realizados, preservando o comportamento documentado.
 **Consequência:** nenhum dado existente muda; o comportamento atual (180 dias
 para serviços sem intervalo) é explícito e configurável. Se o produto quiser
 outro padrão, basta alterar a variável de ambiente.
+**Atualização (25/11/2026):** ao conectar no banco real, confirmou-se que a coluna
+`servicos.intervaloDias` **já existia no PostgreSQL** (apenas não estava mapeada
+no ORM). A migração `0002` é idempotente e não a recriou; os valores existentes
+passaram a ser lidos pela regra em Python.
 
 ## ADR-004 — Notificações como outbox persistido
 
@@ -76,9 +80,15 @@ ampla e N+1 em listagens.
 
 **Contexto:** o app acessa o banco com SQLAlchemy + psycopg2 e role privilegiada.
 RLS não se aplica (não há acesso anônimo).
-**Decisão:** manter SQLAlchemy; em produção usar o **pooler** do Supabase (porta
-6543) e SSL. `supabase-py` só faria sentido para Auth/Storage, que não são usados.
+**Decisão:** manter SQLAlchemy; em produção usar o **pooler** do Supabase e SSL.
+`supabase-py` só faria sentido para Auth/Storage, que não são usados.
 **Consequência:** nenhuma reescrita de dados; ganho de pool e reconexão.
+**Atualização (25/11/2026):** o pooler correto do projeto é
+`aws-1-us-east-1.pooler.supabase.com` na porta **5432 (modo sessão)** — a porta
+6543 (transação) também conecta, mas liberaria o advisory lock ao fim de cada
+transação, quebrando a trava de instância única do job. O host "direto"
+(`db.*.supabase.co`) é IPv6 e apresentou timeout nesta rede; por isso o app usa o
+pooler IPv4.
 
 ## ADR-009 — Descartar o working tree não commitado
 

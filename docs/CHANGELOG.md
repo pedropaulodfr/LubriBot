@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.4.0] — 25/11/2026 — Migrações aplicadas no banco real
+
+### Aplicado em produção (Supabase)
+- Schema legado marcado como baseline (`alembic stamp 0001`) e migrações
+  `0002` e `0003` aplicadas: revisão final **0003**.
+- 12 tabelas legadas preservadas; `conversas` e `alembic_version` criadas
+  (14 tabelas no total). Contagens intactas: 1 usuário, 4 veículos,
+  10 manutenções, 41 notificações, 4 serviços.
+- Outbox completo em `notificacoes`, `chave` preenchida em 100% das linhas,
+  índice único ativo (4 índices na tabela) e `status varchar(20)`.
+- `servicos.intervaloDias` confirmada no banco real — a coluna existia, mas não
+  estava no ORM (ADR-003 validado).
+- Snapshot pré-migração em `Backups/snapshot-pre-migracao-*.json` (94 linhas).
+- Consulta do planejador executada em modo leitura contra o schema real:
+  3 veículos candidatos, 0 pendências.
+
+### Configuração
+- DSN passa a usar o **pooler de sessão** `aws-1-us-east-1.pooler.supabase.com:5432`
+  (IPv4, compatível com advisory lock). O host direto do projeto é IPv6 e
+  apresentou timeout nesta rede.
+
 ## [2.3.0-dev] — 25/11/2026 — Fase 5: conversas persistidas e limites de IA
 
 ### Adicionado

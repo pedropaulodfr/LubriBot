@@ -47,6 +47,17 @@ Status: ✅ concluído · 🚧 em andamento · ⬜ pendente · 🧱 bloqueado
 | T-211 | Máquina de estados persistida por chat | UX/Python | `lubribot/bot/` | ⬜ |
 | T-212 | Confirmação antes de remover veículo | UX | `handlers/del_veiculo_handle.py` | ⬜ |
 
+## Fase 5 (entregue)
+
+| ID | Tarefa | Dono | Escopo | Status |
+|---|---|---|---|---|
+| T-401 | Migração `0003` + tabela `conversas` | Banco | `migrations/` | ✅ |
+| T-402 | Registry de rascunhos persistidos com autossalvamento | Python | `lubribot/bot/conversation_store.py` | ✅ |
+| T-403 | Fachada do bot + retomada após restart | Python | `lubribot/bot/facade.py`, `registry.py` | ✅ |
+| T-404 | Migrar rascunhos de veículo/manutenção/diagnóstico | Python | handlers | ✅ |
+| T-405 | Limites diários de IA configuráveis | Segurança | settings + handlers | ✅ |
+| T-406 | Testes de persistência (unidade + embarcado) | QA | `tests/` | ✅ |
+
 ## Fase 3.1 (próximo incremento)
 
 | ID | Tarefa | Dono | Depende de | Complexidade |

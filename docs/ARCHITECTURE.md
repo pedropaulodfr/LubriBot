@@ -102,9 +102,11 @@ A fase F5 move handlers para `lubribot/bot/handlers` e remove a pasta
   de conversa por chat, `/ajuda` lista comandos.
 - **Fluxos** em [lubribot/bot/handlers/](../lubribot/bot/handlers/), um arquivo por
   fluxo; confirmação antes de remover veículo.
-- **Rascunhos por chat**: cada fluxo com múltiplas etapas mantém
-  `dict[chat_id, Rascunho]` em memória (dados simples, não ORM). O estado não
-  sobrevive a restart — aceitável agora; a fase F5.2 migra para estado persistido.
+- **Rascunhos persistidos por chat**: cada fluxo com várias etapas grava o
+  estado na tabela `conversas` (`lubribot/bot/conversation_store.py`), com a
+  etapa atual. `DraftMixin` salva a cada alteração de campo; a fachada do bot
+  (`lubribot/bot/facade.py`) registra qual é o próximo passo e um handler de
+  retomada continua o fluxo após restart. `/cancelar` apaga a conversa.
 - **Paginação**: o histórico envia 5 manutenções por página com botões
   Anterior/Próxima, em vez de uma mensagem por registro.
 - **HTML da IA**: todo texto gerado por modelo passa por

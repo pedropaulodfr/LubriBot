@@ -42,6 +42,7 @@ from lubribot.utils.logging import get_logger
 from services.produtos_service import get_all_produtos_manutencao, get_produto_by_descricao_completa
 from services.veiculos_service import get_veiculos_by_usuario
 from services.servicos_service import get_all_servicos
+from lubribot.bot.conversation_store import DraftMixin, get_registry
 from lubribot.utils.upload_file_async import upload as upload_s3
 
 logger = get_logger(__name__)
@@ -50,8 +51,10 @@ OPCAO_OUTRO_SERVICO = "⌨️ Outro:"
 
 
 @dataclass
-class RascunhoManutencao:
-    """Estado da conversa de registro de manutenção."""
+class RascunhoManutencao(DraftMixin):
+    """Estado da conversa de registro de manutenção (persistido por chat)."""
+
+    __fluxo__ = "manutencao"
 
     usuario_id: int
     veiculo_id: int | None = None
@@ -65,7 +68,7 @@ class RascunhoManutencao:
     produtos: list[int] = field(default_factory=list)
 
 
-_RASCUNHOS: dict[int, RascunhoManutencao] = {}
+_RASCUNHOS = get_registry("manutencao", RascunhoManutencao)
 
 
 def _rascunho(chat_id: int) -> RascunhoManutencao | None:

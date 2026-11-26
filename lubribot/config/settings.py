@@ -85,6 +85,10 @@ class Settings(BaseSettings):
     notificacoes_max_tentativas: int = Field(default=5, ge=1, le=50)
     notificacoes_backoff_base_segundos: int = Field(default=60, ge=1)
 
+    # ---------------------------------------------------------------- limites de IA
+    ia_diagnosticos_por_dia: int = Field(default=3, ge=1, le=100, validation_alias="IA_DIAGNOSTICOS_DIA")
+    ia_dicas_por_dia: int = Field(default=10, ge=1, le=100, validation_alias="IA_DICAS_DIA")
+
     # ---------------------------------------------------------------- pool
     db_pool_size: int = Field(default=5, ge=1, le=50)
     db_max_overflow: int = Field(default=10, ge=0, le=100)

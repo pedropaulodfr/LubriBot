@@ -61,7 +61,6 @@ alembic upgrade head
 ```
 
 O `0002` é idempotente (`IF NOT EXISTS`) e **não apaga dados**:
-
 - alarga `notificacoes.status` para `varchar(20)`;
 - adiciona `servicos.intervaloDias` (nullable);
 - adiciona colunas do outbox em `notificacoes`;

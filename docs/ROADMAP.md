@@ -59,8 +59,8 @@ Concluído neste incremento:
 
 Pendente (próximo incremento):
 
-1. ⬜ Máquina de estados explícita por chat, persistida no banco (sobreviver a
-   restart). Hoje os rascunhos vivem em memória.
+1. ✅ Máquina de estados persistida por chat (tabela `conversas`, migração
+   `0003`, retomada automática após restart).
 2. ⬜ Feedback de progresso mais claro em I/O longo (foto, IA).
 3. ⬜ Revisão de textos (acentuação/emoji) nos fluxos ainda não tocados.
 
@@ -77,7 +77,8 @@ Pendente (próximo incremento):
 
 1. ✅ Autorização por dono em veículo/produto/serviço/diagnóstico.
 2. ✅ Validação de entrada centralizada (placa, ano, km, custo, RENAVAM).
-3. ⬜ Rate limiting por usuário para IA (hoje só o diagnóstico tem limite).
+3. ✅ Rate limiting por usuário para IA (limites diários configuráveis para
+   diagnósticos e dicas).
 4. ✅ Sanitização de HTML da IA (allowlist de tags).
 5. ⬜ Revisar permissões do role do banco (mínimo necessário) e SSL obrigatório.
 6. ✅ Limpeza do histórico Git (executada em 25/11/2026; backup em `Backups/`).

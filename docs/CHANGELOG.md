@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.3.0-dev] — 25/11/2026 — Fase 5: conversas persistidas e limites de IA
+
+### Adicionado
+- Tabela `conversas` (migração `0003`) e registro de rascunhos persistidos:
+  cada chat tem no máximo uma conversa ativa com dados e etapa atual.
+- **Retomada após restart**: a fachada do bot (`lubribot/bot/facade.py`) anota o
+  próximo passo e um handler catch-all retoma o fluxo quando não há passo
+  pendente — o usuário não perde o progresso se o processo reiniciar.
+- Rascunhos de veículo, manutenção e diagnóstico agora se gravam sozinhos
+  (`DraftMixin`), sem alterar a lógica de cada etapa.
+- Limites diários de IA configuráveis: `IA_DIAGNOSTICOS_DIA` (3) e
+  `IA_DICAS_DIA` (10), com mensagem orientativa ao atingir.
+
+### Alterado
+- `apply_migrations.py` verifica a revisão `0003`.
+- Validação embarcada cobre a persistência (novo registry lê o mesmo estado).
+
 ## [2.2.0-dev] — 25/11/2026 — Fase 4: pacotes, segurança de entrada e higiene do histórico
 
 ### Adicionado

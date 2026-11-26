@@ -164,7 +164,63 @@ class TestSchema:
             revisao = conexao.execute(
                 text("SELECT version_num FROM alembic_version")
             ).scalar()
-        assert revisao == "0002"
+        assert revisao == "0003"
+
+    def test_tabela_de_conversas_existe(self, engine):
+        inspetor = inspect(engine)
+        assert "conversas" in inspetor.get_table_names()
+        colunas = {c["name"] for c in inspetor.get_columns("conversas")}
+        assert {"chat_id", "fluxo", "etapa", "dados"} <= colunas
+
+
+class TestConversasPersistidas:
+    """Rascunho sobrevive a restart: nova instância do registry lê o mesmo estado."""
+
+    def test_rascunho_sobrevive_a_nova_instancia(self, db):
+        from dataclasses import dataclass, field
+
+        from lubribot.bot.conversation_store import DraftMixin, SQLConversationRegistry
+
+        @dataclass
+        class Rascunho(  # type: ignore[misc]
+            DraftMixin
+        ):
+            __fluxo__ = "teste-integracao"
+            usuario_id: int
+            km: int | None = None
+            produtos: list[int] = field(default_factory=list)
+
+        def fabrica():
+            return db
+
+        primeiro = SQLConversationRegistry("teste-integracao", Rascunho, db_factory=fabrica)
+        primeiro[999] = Rascunho(usuario_id=1, km=1000)
+        rascunho = primeiro.get(999)
+        rascunho.km = 45000
+        primeiro.definir_etapa(999, "receber_km")
+
+        # Simula restart: novo registry, mesmo banco.
+        segundo = SQLConversationRegistry("teste-integracao", Rascunho, db_factory=fabrica)
+        carregado = segundo.get(999)
+        assert carregado is not None
+        assert carregado.km == 45000
+        assert segundo.obter_etapa(999) == "receber_km"
+
+        assert segundo.limpar(999) is True
+        assert segundo.get(999) is None
+
+    def test_registros_de_fluxos_diferentes_nao_colidem(self, db):
+        from lubribot.bot.conversation_store import SQLConversationRegistry
+
+        def fabrica():
+            return db
+
+        manutencao = SQLConversationRegistry("manutencao", dict, db_factory=fabrica)
+        veiculo = SQLConversationRegistry("veiculo", dict, db_factory=fabrica)
+
+        manutencao[555] = {"km": 10}
+        assert veiculo.get(555) is None
+        assert manutencao.get(555)["km"] == 10
 
 
 class TestNotificacoesPontaAPonta:

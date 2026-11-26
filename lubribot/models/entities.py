@@ -17,6 +17,7 @@ from __future__ import annotations
 from datetime import date, datetime
 
 from sqlalchemy import (
+    BigInteger,
     Boolean,
     Date,
     DateTime,
@@ -29,6 +30,7 @@ from sqlalchemy import (
     UniqueConstraint,
     func,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -299,8 +301,28 @@ class Notificacao(Base):
     manutencao: Mapped[Manutencao | None] = relationship(lazy="selectin")
 
 
+class Conversa(Base):
+    """Estado de uma conversa em andamento (rascunho persistido).
+
+    Sobrevive a restart: cada chat tem no máximo uma conversa ativa. ``dados`` é
+    o rascunho serializado do fluxo e ``etapa`` é o nome do próximo passo, usado
+    para retomar de onde parou.
+    """
+
+    __tablename__ = "conversas"
+
+    chat_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    fluxo: Mapped[str] = mapped_column(String(32), nullable=False)
+    etapa: Mapped[str | None] = mapped_column(String(64))
+    dados: Mapped[dict | None] = mapped_column(JSONB)
+    atualizadoEm: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
 __all__ = [
     "Base",
+    "Conversa",
     "Manutencao",
     "ManutencaoProduto",
     "ManutencaoServico",

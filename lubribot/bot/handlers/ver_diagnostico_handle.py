@@ -21,6 +21,8 @@ from telebot.types import ForceReply
 from lubribot.bot.keyboards.markups_genericos_keyboard import markups_genericos_keyboard
 from lubribot.bot.keyboards.menu_principal_keyboard import menu_principal
 from lubribot.bot.keyboards.veiculos_keyboard import veiculos_keyboard
+from lubribot.bot.conversation_store import get_registry
+from lubribot.config.settings import get_settings
 from lubribot.database.runtime import get_database
 from lubribot.models import Usuario, Veiculo, VeiculoDiagnosticos
 from lubribot.utils.logging import get_logger
@@ -36,10 +38,19 @@ load_dotenv(find_dotenv())
 genai.configure(api_key=os.getenv("GEMINI_ApiKey"))
 modelo = genai.GenerativeModel("gemini-2.5-flash")
 
-LIMITE_DIARIO = 3
+LIMITE_DIARIO_FALLBACK = 3
+
+
+def _limite_diario() -> int:
+    """Limite configurável por ambiente (padrão 3/dia)."""
+    try:
+        return get_settings().ia_diagnosticos_por_dia
+    except Exception:  # configuração ausente não deve quebrar o fluxo
+        return LIMITE_DIARIO_FALLBACK
 
 # chat_id -> {"veiculo_id": int, "veiculo_texto": str, "problema": str, "diagnostico": str}
-_ESTADOS: dict[int, dict] = {}
+# Persistido por chat: sobrevive a restart no meio do fluxo.
+_ESTADOS = get_registry("diagnostico", dict)
 
 
 def limpar_estado(chat_id: int) -> bool:
@@ -163,7 +174,7 @@ def ver_diagnostico_handle(bot):
                 .count()
             )
 
-        if diagnosticos_hoje >= LIMITE_DIARIO:
+        if diagnosticos_hoje >= _limite_diario():
             bot.send_message(
                 message.chat.id,
                 "❌ Você atingiu o limite diário de 3 diagnósticos. Por favor, tente novamente amanhã.",

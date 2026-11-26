@@ -1,13 +1,16 @@
 """Registro central dos handlers do Telegram.
 
-Os handlers ainda são os módulos legados (a migração de UX é a fase F5). Manter o
-registro num único lugar evita o ``main.py`` de 130 linhas com 21 imports soltos.
+A fachada (:class:`BotFacade`) embrulha o bot para anotar qual é o próximo passo
+de cada conversa. Isso, somado aos rascunhos persistidos, permite retomar um
+fluxo interrompido por restart. O handler de retomada é registrado por último,
+por isso só atua quando nenhum `next_step_handler` está pendente.
 """
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from lubribot.bot.facade import BotFacade
 from lubribot.bot.handlers.add_manutencao_handle import add_manutencao_handle
 from lubribot.bot.handlers.add_produtos_handle import add_produto_handle
 from lubribot.bot.handlers.add_servico_handle import add_servico_handle
@@ -40,28 +43,50 @@ if TYPE_CHECKING:  # pragma: no cover
 logger = get_logger(__name__)
 
 
-def registrar_handlers(bot: TeleBot) -> None:
+def registrar_handlers(bot: TeleBot) -> BotFacade:
     """Registra todos os handlers na instância do bot (ordem preservada)."""
-    start(bot)
-    navegacao_handle(bot)
-    add_manutencao_handle(bot)
-    ver_manutencao_handle(bot)
-    add_veiculo_handle(bot)
-    ver_veiculo_handle(bot)
-    del_veiculo_handle(bot)
-    gerenciar_veiculos_handle(bot)
-    configuracoes_handle(bot)
-    configuracoes_receber_notificacoes(bot)
-    configuracoes_dias_notificacao(bot)
-    configuracoes_cancelar(bot)
-    ver_dica_handle(bot)
-    ver_diagnostico_handle(bot)
-    register_checkbox_handlers(bot)
-    mais_handle(bot)
-    gerenciar_produtos_handle(bot)
-    add_produto_handle(bot)
-    ver_produtos_handle(bot)
-    gerenciar_servicos_handle(bot)
-    ver_servicos_handle(bot)
-    add_servico_handle(bot)
+    facade = BotFacade(bot)
+    start(facade)
+    navegacao_handle(facade)
+    add_manutencao_handle(facade)
+    ver_manutencao_handle(facade)
+    add_veiculo_handle(facade)
+    ver_veiculo_handle(facade)
+    del_veiculo_handle(facade)
+    gerenciar_veiculos_handle(facade)
+    configuracoes_handle(facade)
+    configuracoes_receber_notificacoes(facade)
+    configuracoes_dias_notificacao(facade)
+    configuracoes_cancelar(facade)
+    ver_dica_handle(facade)
+    ver_diagnostico_handle(facade)
+    register_checkbox_handlers(facade)
+    mais_handle(facade)
+    gerenciar_produtos_handle(facade)
+    add_produto_handle(facade)
+    ver_produtos_handle(facade)
+    gerenciar_servicos_handle(facade)
+    ver_servicos_handle(facade)
+    add_servico_handle(facade)
+    _registrar_retomada(facade)
     logger.info("handlers_registrados")
+    return facade
+
+
+def _registrar_retomada(facade: BotFacade) -> None:
+    """Catch-all que retoma um rascunho persistido quando não há passo pendente."""
+
+    @facade.message_handler(content_types=["text", "photo"])
+    def retomar_conversa(message):
+        if (message.text or "").startswith("/"):
+            return
+        retomada = facade.retomar(message.chat.id)
+        if retomada is None:
+            return
+        _registro, _etapa, callback = retomada
+        facade.send_message(
+            message.chat.id,
+            "🔄 Retomando a operação que ficou em andamento...",
+        )
+        logger.info("conversa_retomada", extra={"chat_id": message.chat.id})
+        callback(message)

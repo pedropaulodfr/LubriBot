@@ -27,6 +27,7 @@ from lubribot.domain.validation import (
     validar_ano,
     validar_placa,
 )
+from lubribot.bot.conversation_store import DraftMixin, get_registry
 from lubribot.models import Usuario, Veiculo
 from lubribot.utils.logging import get_logger
 from services.vpic_service import get_modelos_por_marca_ano
@@ -35,8 +36,10 @@ logger = get_logger(__name__)
 
 
 @dataclass
-class RascunhoVeiculo:
-    """Dados coletados durante a conversa de cadastro."""
+class RascunhoVeiculo(DraftMixin):
+    """Dados coletados durante a conversa de cadastro (persistidos por chat)."""
+
+    __fluxo__ = "veiculo"
 
     usuario_id: int
     placa: str | None = None
@@ -49,7 +52,7 @@ class RascunhoVeiculo:
     renavam: str | None = None
 
 
-_RASCUNHOS: dict[int, RascunhoVeiculo] = {}
+_RASCUNHOS = get_registry("veiculo", RascunhoVeiculo)
 
 
 def _rascunho(chat_id: int) -> RascunhoVeiculo | None:

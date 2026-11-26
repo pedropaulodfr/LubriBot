@@ -21,6 +21,18 @@ session = _Session()
 genai.configure(api_key=os.getenv("GEMINI_ApiKey"))
 modelo = genai.GenerativeModel("gemini-2.5-flash")
 
+LIMITE_DICAS_FALLBACK = 10
+
+
+def _limite_diario_dicas() -> int:
+    """Limite diário configurável de gerações de dica por usuário."""
+    try:
+        from lubribot.config.settings import get_settings
+
+        return get_settings().ia_dicas_por_dia
+    except Exception:  # configuração ausente não deve quebrar o fluxo
+        return LIMITE_DICAS_FALLBACK
+
 
 def ver_dica_handle(bot):
     @bot.message_handler(func=lambda message: message.text == "💡 Dicas")
@@ -72,6 +84,28 @@ def ver_dica_handle(bot):
             )
             return
         else:
+            limite = _limite_diario_dicas()
+            geradas_hoje = (
+                session.query(VeiculoDica)
+                .join(Veiculo)
+                .filter(
+                    Veiculo.usuario_id == usuario.id,
+                    VeiculoDica.datacriacao == datetime.date.today(),
+                )
+                .count()
+            )
+            if geradas_hoje >= limite:
+                logger.warning(
+                    "limite_diario_dicas_atingido",
+                    extra={"usuario_id": usuario.id, "geradas_hoje": geradas_hoje},
+                )
+                bot.send_message(
+                    message.chat.id,
+                    f"❌ Você atingiu o limite diário de {limite} dicas geradas por IA. "
+                    "Tente novamente amanhã.",
+                    reply_markup=menu_principal(),
+                )
+                return
             send_and_delete(bot, message.chat.id, "🧠 Gerando dica personalizada para o seu veículo. Por favor, aguarde...", delay=60)
 
         try:

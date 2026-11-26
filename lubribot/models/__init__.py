@@ -2,6 +2,7 @@
 
 from lubribot.models.entities import (
     Base,
+    Conversa,
     Manutencao,
     ManutencaoProduto,
     ManutencaoServico,
@@ -19,6 +20,7 @@ from lubribot.models.entities import (
 
 __all__ = [
     "Base",
+    "Conversa",
     "Manutencao",
     "ManutencaoProduto",
     "ManutencaoServico",

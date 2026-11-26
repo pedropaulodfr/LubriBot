@@ -1,4 +1,4 @@
-﻿"""Aplica as migrações do LubriBot de forma segura e idempotente.
+"""Aplica as migrações do LubriBot de forma segura e idempotente.
 
 Uso::
 
@@ -59,7 +59,7 @@ def _verificar(engine) -> bool:
     print(f"revisão   : {revisao}")
     print(f"outbox    : {'completo' if outbox <= colunas else 'INCOMPLETO ' + str(sorted(outbox - colunas))}")
     print(f"status    : varchar({tamanho_status})")
-    ok = revisao == "0002" and outbox <= colunas and tamanho_status and tamanho_status >= 20
+    ok = revisao == "0003" and outbox <= colunas and tamanho_status and tamanho_status >= 20
     return bool(ok)
 
 

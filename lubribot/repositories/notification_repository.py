@@ -54,6 +54,7 @@ class SQLAlchemyNotificationRepository:
                 Manutencao.id.label("manutencao_id"),
                 Manutencao.veiculo_id.label("veiculo_id"),
                 Manutencao.data.label("data"),
+                Manutencao.km.label("km"),
                 func.row_number()
                 .over(
                     partition_by=Manutencao.veiculo_id,
@@ -69,7 +70,12 @@ class SQLAlchemyNotificationRepository:
             .subquery()
         )
         ultima = (
-            select(ranking.c.manutencao_id, ranking.c.veiculo_id, ranking.c.data)
+            select(
+                ranking.c.manutencao_id,
+                ranking.c.veiculo_id,
+                ranking.c.data,
+                ranking.c.km,
+            )
             .where(ranking.c.ordem == 1)
             .subquery()
         )
@@ -82,6 +88,7 @@ class SQLAlchemyNotificationRepository:
                 Veiculo.cor,
                 Veiculo.anoModelo,
                 Veiculo.placa,
+                Veiculo.kmAtual,
                 Usuario.id.label("usuario_id"),
                 Usuario.telegram_id,
                 Usuario.primeiroNome,
@@ -89,6 +96,7 @@ class SQLAlchemyNotificationRepository:
                 UsuarioParametro.diasNotificacao,
                 ultima.c.manutencao_id,
                 ultima.c.data,
+                ultima.c.km,
             )
             .join(Usuario, Usuario.id == Veiculo.usuario_id)
             .join(ultima, ultima.c.veiculo_id == Veiculo.id)
@@ -102,7 +110,7 @@ class SQLAlchemyNotificationRepository:
             return []
 
         ids_manutencao = [linha.manutencao_id for linha in linhas]
-        intervalos = self._intervalos_por_manutencao(ids_manutencao)
+        intervalos_dias, intervalos_km = self._intervalos_por_manutencao(ids_manutencao)
 
         candidatos: list[CandidatoVeiculo] = []
         for linha in linhas:
@@ -116,7 +124,7 @@ class SQLAlchemyNotificationRepository:
                     dias_notificacao=linha.diasNotificacao,
                     ultima_manutencao_id=linha.manutencao_id,
                     ultima_data=linha.data,
-                    intervalos_dias=tuple(intervalos.get(linha.manutencao_id, ())),
+                    intervalos_dias=tuple(intervalos_dias.get(linha.manutencao_id, ())),
                     descricao=descricao_veiculo(
                         linha.fabricante,
                         linha.modelo,
@@ -124,25 +132,34 @@ class SQLAlchemyNotificationRepository:
                         linha.anoModelo,
                         linha.placa,
                     ),
+                    ultima_km=linha.km,
+                    km_atual=linha.kmAtual,
+                    intervalos_km=tuple(intervalos_km.get(linha.manutencao_id, ())),
                 )
             )
         return candidatos
 
     def _intervalos_por_manutencao(
         self, manutencao_ids: list[int]
-    ) -> dict[int, list[int | None]]:
-        """Uma consulta para todos os intervalos dos serviços realizados."""
+    ) -> tuple[dict[int, list[int | None]], dict[int, list[int | None]]]:
+        """Uma consulta para todos os intervalos (dias e km) dos serviços."""
         if not manutencao_ids:
-            return {}
+            return {}, {}
         stmt = (
-            select(ManutencaoServico.manutencao_id, Servico.intervaloDias)
+            select(
+                ManutencaoServico.manutencao_id,
+                Servico.intervaloDias,
+                Servico.intervaloKm,
+            )
             .join(Servico, Servico.id == ManutencaoServico.servico_id, isouter=True)
             .where(ManutencaoServico.manutencao_id.in_(manutencao_ids))
         )
-        agrupado: dict[int, list[int | None]] = {}
-        for manutencao_id, intervalo in self._session.execute(stmt).all():
-            agrupado.setdefault(manutencao_id, []).append(intervalo)
-        return agrupado
+        dias: dict[int, list[int | None]] = {}
+        kms: dict[int, list[int | None]] = {}
+        for manutencao_id, intervalo_dias, intervalo_km in self._session.execute(stmt).all():
+            dias.setdefault(manutencao_id, []).append(intervalo_dias)
+            kms.setdefault(manutencao_id, []).append(intervalo_km)
+        return dias, kms
 
     def listar_pendentes(self, agora: datetime) -> list[NotificacaoPendente]:
         """Pendentes prontas para envio, com destinatário já resolvido."""

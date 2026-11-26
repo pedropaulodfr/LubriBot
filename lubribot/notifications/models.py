@@ -23,6 +23,9 @@ class CandidatoVeiculo:
     ultima_data: date
     intervalos_dias: tuple[int | None, ...]
     descricao: str
+    ultima_km: int | None = None
+    km_atual: int | None = None
+    intervalos_km: tuple[int | None, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

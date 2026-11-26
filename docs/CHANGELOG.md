@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.5.0] — 25/11/2026 — Notificação por KM, produção configurada e limpeza
+
+### Adicionado
+- **Notificação por quilometragem**: `servicos.intervaloKm`, `veiculos.kmAtual` e
+  `veiculos.kmAtualizadoEm` (migração `0004`, aplicada no Supabase).
+- Regra combinada: avisa quando a data entra na janela **ou** quando o odômetro
+  alcança `última_km + max(intervaloKm)`. Um aviso por manutenção (idempotente).
+- Fluxo **"📍 Atualizar KM"** em Gerenciar Veículos; o KM também é atualizado
+  automaticamente ao registrar uma manutenção.
+- `INTERVALO_KM_PADRAO` opcional: ativa a regra sem precisar preencher cada serviço.
+  Vazio = notificação por km desabilitada.
+
+### Alterado
+- `.env` local passa a `AMBIENTE=PRODUÇÃO` (usa token e banco de produção).
+- `migration_data.sql` e `migration.log` **apagados do disco** (continham PII/refs).
+
 ## [2.4.0] — 25/11/2026 — Migrações aplicadas no banco real
 
 ### Aplicado em produção (Supabase)

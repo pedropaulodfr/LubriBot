@@ -9,8 +9,10 @@ from lubribot.domain.maintenance import (
     TIPO_PROXIMA_MANUTENCAO,
     TITULO_PROXIMA_MANUTENCAO,
     calcular_agendamento,
+    calcular_vencimento_km,
     chave_notificacao,
     esta_na_janela,
+    km_vencido,
     montar_conteudo_notificacao,
 )
 from lubribot.domain.notifications import NotificationStatus
@@ -32,10 +34,12 @@ class NotificationPlanner:
         repo: NotificationRepositoryPort,
         *,
         intervalo_padrao_dias: int,
+        intervalo_km_padrao: int | None = None,
         hoje_factory: Callable[[], date] = date.today,
     ) -> None:
         self._repo = repo
         self._intervalo_padrao = intervalo_padrao_dias
+        self._intervalo_km_padrao = intervalo_km_padrao
         self._hoje = hoje_factory
 
     def planejar(self) -> PlanningResult:
@@ -79,7 +83,18 @@ class NotificationPlanner:
             padrao=self._intervalo_padrao,
         )
 
-        if not esta_na_janela(agendamento.proxima_data, hoje, candidato.dias_notificacao):
+        por_data = esta_na_janela(
+            agendamento.proxima_data, hoje, candidato.dias_notificacao
+        )
+        # Aviso por km: só quando há intervalo por serviço e odômetro informado.
+        proxima_km = calcular_vencimento_km(
+            candidato.ultima_km,
+            list(candidato.intervalos_km),
+            padrao=self._intervalo_km_padrao,
+        )
+        por_km = km_vencido(candidato.km_atual, proxima_km)
+
+        if not (por_data or por_km):
             resultado.fora_da_janela += 1
             return
 
@@ -91,7 +106,8 @@ class NotificationPlanner:
             conteudo=montar_conteudo_notificacao(
                 candidato.nome_usuario,
                 candidato.descricao,
-                agendamento.proxima_data,
+                agendamento.proxima_data if por_data else None,
+                proxima_km=proxima_km if por_km else None,
             ),
             usuario_id=candidato.usuario_id,
             veiculo_id=candidato.veiculo_id,

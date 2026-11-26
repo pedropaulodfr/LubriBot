@@ -10,10 +10,13 @@ from lubribot.domain.maintenance import (
     ANTECEDENCIA_PADRAO_DIAS,
     INTERVALO_PADRAO_DIAS,
     calcular_agendamento,
+    calcular_vencimento_km,
     chave_notificacao,
     descricao_veiculo,
     esta_na_janela,
     intervalo_efetivo,
+    intervalo_km_efetivo,
+    km_vencido,
     montar_conteudo_notificacao,
 )
 
@@ -77,6 +80,63 @@ class TestJanelaDeAviso:
     def test_antecedencia_ausente_usa_padrao(self):
         proxima = self.HOJE + timedelta(days=ANTECEDENCIA_PADRAO_DIAS)
         assert esta_na_janela(proxima, self.HOJE, None) is True
+
+
+class TestIntervaloKm:
+    def test_usa_o_maior_intervalo(self):
+        assert intervalo_km_efetivo([5000, 10000, None]) == 10000
+
+    def test_sem_dados_retorna_none(self):
+        assert intervalo_km_efetivo([]) is None
+        assert intervalo_km_efetivo([None, 0, -1]) is None
+
+    def test_padrao_opcional(self):
+        assert intervalo_km_efetivo([], padrao=8000) == 8000
+
+
+class TestVencimentoKm:
+    def test_soma_intervalo_ao_ultimo_km(self):
+        assert calcular_vencimento_km(10000, [5000]) == 15000
+
+    def test_sem_ultimo_km_nao_calcula(self):
+        assert calcular_vencimento_km(None, [5000]) is None
+
+    def test_sem_intervalo_nao_calcula(self):
+        assert calcular_vencimento_km(10000, [None]) is None
+        assert calcular_vencimento_km(10000, []) is None
+
+
+class TestKmVencido:
+    @pytest.mark.parametrize(
+        ("km_atual", "proxima_km", "esperado"),
+        [
+            (15000, 15000, True),   # exatamente no vencimento
+            (16000, 15000, True),   # passou
+            (14999, 15000, False),  # ainda não
+            (None, 15000, False),   # sem odômetro
+            (15000, None, False),   # sem vencimento calculado
+        ],
+    )
+    def test_comparacao(self, km_atual, proxima_km, esperado):
+        assert km_vencido(km_atual, proxima_km) is esperado
+
+
+class TestMensagemPorKm:
+    def test_apenas_km(self):
+        texto = montar_conteudo_notificacao("Ana", "Honda Bros", None, proxima_km=11500)
+        assert "11.500 km" in texto
+        assert "Ana" in texto
+
+    def test_data_e_km(self):
+        texto = montar_conteudo_notificacao(
+            "Ana", "Honda Bros", date(2026, 2, 3), proxima_km=11500
+        )
+        assert "03/02/2026" in texto
+        assert "11.500 km" in texto
+
+    def test_sem_gatilho_menciona_revisao(self):
+        texto = montar_conteudo_notificacao("Ana", "Honda Bros")
+        assert "revisar" in texto
 
 
 class TestChaveDeIdempotencia:

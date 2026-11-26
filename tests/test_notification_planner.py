@@ -104,6 +104,89 @@ class TestNaoCriacao:
         assert resultado.ja_existentes == 1
 
 
+class TestNotificacaoPorKm:
+    def test_cria_quando_km_atinge_o_vencimento_mesmo_fora_da_janela_de_data(self):
+        repo = FakeNotificationRepository(
+            candidatos=[
+                candidato(
+                    ultima_data=HOJE - timedelta(days=10),   # longe da janela de data
+                    intervalos_dias=(180,),
+                    ultima_km=10000,
+                    km_atual=11000,                          # 1000 km desde a última
+                    intervalos_km=(1000,),
+                )
+            ]
+        )
+        resultado = _planner(repo).planejar()
+
+        assert resultado.criadas == 1
+        assert "11.000 km" in repo.criadas[0].conteudo
+
+    def test_nao_cria_quando_km_ainda_nao_chegou(self):
+        repo = FakeNotificationRepository(
+            candidatos=[
+                candidato(
+                    ultima_data=HOJE - timedelta(days=10),
+                    intervalos_dias=(180,),
+                    ultima_km=10000,
+                    km_atual=10500,
+                    intervalos_km=(1000,),
+                )
+            ]
+        )
+        resultado = _planner(repo).planejar()
+        assert resultado.criadas == 0
+        assert resultado.fora_da_janela == 1
+
+    def test_sem_intervalo_km_nao_dispara(self):
+        repo = FakeNotificationRepository(
+            candidatos=[
+                candidato(
+                    ultima_data=HOJE - timedelta(days=10),
+                    intervalos_dias=(180,),
+                    ultima_km=10000,
+                    km_atual=99999,
+                    intervalos_km=(None,),
+                )
+            ]
+        )
+        assert _planner(repo).planejar().criadas == 0
+
+    def test_sem_odometro_atual_nao_dispara(self):
+        repo = FakeNotificationRepository(
+            candidatos=[
+                candidato(
+                    ultima_data=HOJE - timedelta(days=10),
+                    intervalos_dias=(180,),
+                    ultima_km=10000,
+                    km_atual=None,
+                    intervalos_km=(1000,),
+                )
+            ]
+        )
+        assert _planner(repo).planejar().criadas == 0
+
+    def test_padrao_km_configuravel_por_ambiente(self):
+        repo = FakeNotificationRepository(
+            candidatos=[
+                candidato(
+                    ultima_data=HOJE - timedelta(days=10),
+                    intervalos_dias=(180,),
+                    ultima_km=10000,
+                    km_atual=11000,
+                    intervalos_km=(None,),  # serviço sem intervalo; usa o padrão
+                )
+            ]
+        )
+        planner = NotificationPlanner(
+            repo,
+            intervalo_padrao_dias=180,
+            intervalo_km_padrao=1000,
+            hoje_factory=lambda: HOJE,
+        )
+        assert planner.planejar().criadas == 1
+
+
 class TestToleranciaAFalhas:
     def test_falha_em_um_veiculo_nao_derruba_o_ciclo(self):
         class RepoComFalha(FakeNotificationRepository):

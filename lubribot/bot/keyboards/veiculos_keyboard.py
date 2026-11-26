@@ -5,6 +5,7 @@ def gerenciar_veiculos_keyboard():
     markup.add(KeyboardButton("🔎 Visualizar Veículos"))
     markup.add(KeyboardButton("➕ Adicionar Veículo"))
     markup.add(KeyboardButton("➖ Remover Veículo"))
+    markup.add(KeyboardButton("📍 Atualizar KM"))
     return markup
 
 def veiculos_keyboard(veiculos = []):

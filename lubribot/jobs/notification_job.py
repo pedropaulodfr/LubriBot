@@ -77,6 +77,7 @@ class NotificationJob:
             planner = NotificationPlanner(
                 SQLAlchemyNotificationRepository(session),
                 intervalo_padrao_dias=self._settings.intervalo_manutencao_padrao_dias,
+                intervalo_km_padrao=self._settings.intervalo_km_padrao,
             )
             return planner.planejar()
 

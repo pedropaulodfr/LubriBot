@@ -102,6 +102,9 @@ class Veiculo(Base):
     anoFabricacao: Mapped[str | None] = mapped_column(String(4))
     cor: Mapped[str | None] = mapped_column(String(20))
     status: Mapped[str | None] = mapped_column(String(8))
+    # Odômetro informado pelo usuário (base da notificação por km).
+    kmAtual: Mapped[int | None] = mapped_column(Integer)
+    kmAtualizadoEm: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     usuario: Mapped[Usuario | None] = relationship(back_populates="veiculos", lazy="selectin")
     manutencoes: Mapped[list[Manutencao]] = relationship(
@@ -167,6 +170,8 @@ class Servico(Base):
     usuario_id: Mapped[int | None] = mapped_column(ForeignKey("usuarios.id"))
     # Intervalo recomendado de troca/revisão, em dias. NULL = usa o padrão global.
     intervaloDias: Mapped[int | None] = mapped_column(Integer)
+    # Intervalo recomendado em quilômetros. NULL = sem alerta por km.
+    intervaloKm: Mapped[int | None] = mapped_column(Integer)
 
     usuario: Mapped[Usuario | None] = relationship(lazy="selectin")
 

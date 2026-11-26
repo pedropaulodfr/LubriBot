@@ -24,6 +24,9 @@ def candidato(
     ultima_data: date = date(2026, 1, 1),
     intervalos_dias: tuple[int | None, ...] = (180,),
     descricao: str = "Honda Bros Vermelha 2022 (ABC1D23)",
+    ultima_km: int | None = None,
+    km_atual: int | None = None,
+    intervalos_km: tuple[int | None, ...] = (),
 ) -> CandidatoVeiculo:
     return CandidatoVeiculo(
         veiculo_id=veiculo_id,
@@ -36,6 +39,9 @@ def candidato(
         ultima_data=ultima_data,
         intervalos_dias=intervalos_dias,
         descricao=descricao,
+        ultima_km=ultima_km,
+        km_atual=km_atual,
+        intervalos_km=intervalos_km,
     )
 
 

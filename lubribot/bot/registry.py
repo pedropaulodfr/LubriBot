@@ -15,6 +15,7 @@ from lubribot.bot.handlers.add_manutencao_handle import add_manutencao_handle
 from lubribot.bot.handlers.add_produtos_handle import add_produto_handle
 from lubribot.bot.handlers.add_servico_handle import add_servico_handle
 from lubribot.bot.handlers.add_veiculo_handle import add_veiculo_handle
+from lubribot.bot.handlers.atualizar_km_handle import atualizar_km_handle
 from lubribot.bot.handlers.configuracoes_handle import (
     configuracoes_cancelar,
     configuracoes_dias_notificacao,
@@ -53,6 +54,7 @@ def registrar_handlers(bot: TeleBot) -> BotFacade:
     add_veiculo_handle(facade)
     ver_veiculo_handle(facade)
     del_veiculo_handle(facade)
+    atualizar_km_handle(facade)
     gerenciar_veiculos_handle(facade)
     configuracoes_handle(facade)
     configuracoes_receber_notificacoes(facade)

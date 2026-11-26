@@ -58,6 +58,17 @@ Status: ✅ concluído · 🚧 em andamento · ⬜ pendente · 🧱 bloqueado
 | T-405 | Limites diários de IA configuráveis | Segurança | settings + handlers | ✅ |
 | T-406 | Testes de persistência (unidade + embarcado) | QA | `tests/` | ✅ |
 
+## Fase 6 (entregue)
+
+| ID | Tarefa | Dono | Escopo | Status |
+|---|---|---|---|---|
+| T-501 | Migração `0004`: `intervaloKm` e `kmAtual` | Banco | `migrations/` | ✅ aplicada no Supabase |
+| T-502 | Regra combinada data + KM no planejador | Python | `domain/`, `notifications/` | ✅ |
+| T-503 | Fluxo "📍 Atualizar KM" + atualização automática na manutenção | UX | handlers | ✅ |
+| T-504 | `INTERVALO_KM_PADRAO` configurável | Python | settings, job | ✅ |
+| T-505 | `AMBIENTE=PRODUÇÃO` no `.env` | Operação | `.env` (ignorado no Git) | ✅ |
+| T-506 | Apagar `migration_data.sql` e `migration.log` do disco | Segurança | disco | ✅ |
+
 ## Fase 3.1 (próximo incremento)
 
 | ID | Tarefa | Dono | Depende de | Complexidade |

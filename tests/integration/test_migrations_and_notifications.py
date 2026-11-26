@@ -164,7 +164,14 @@ class TestSchema:
             revisao = conexao.execute(
                 text("SELECT version_num FROM alembic_version")
             ).scalar()
-        assert revisao == "0003"
+        assert revisao == "0004"
+
+    def test_colunas_de_km_existem(self, engine):
+        inspetor = inspect(engine)
+        servicos = {c["name"] for c in inspetor.get_columns("servicos")}
+        veiculos = {c["name"] for c in inspetor.get_columns("veiculos")}
+        assert "intervaloKm" in servicos
+        assert {"kmAtual", "kmAtualizadoEm"} <= veiculos
 
     def test_tabela_de_conversas_existe(self, engine):
         inspetor = inspect(engine)
@@ -221,6 +228,57 @@ class TestConversasPersistidas:
         manutencao[555] = {"km": 10}
         assert veiculo.get(555) is None
         assert manutencao.get(555)["km"] == 10
+
+
+class TestNotificacaoPorKmIntegracao:
+    def test_planner_dispara_por_km_fora_da_janela_de_data(self, db):
+        with db.unit_of_work() as session:
+            usuario = Usuario(telegram_id=777_000_222, primeiroNome="Bruno", status="Ativo")
+            session.add(usuario)
+            session.flush()
+            session.add(
+                UsuarioParametro(usuario_id=usuario.id, receberNotificacoes=True, diasNotificacao=7)
+            )
+            veiculo = Veiculo(
+                usuario_id=usuario.id,
+                tipo="Carro",
+                placa="XYZ9A11",
+                fabricante="Toyota",
+                modelo="Yaris",
+                status="Ativo",
+                kmAtual=11_500,  # já passou do vencimento (10.000 + 1.000)
+            )
+            session.add(veiculo)
+            servico = Servico(
+                descricao="Troca de óleo",
+                status="Ativo",
+                intervaloDias=180,
+                intervaloKm=1_000,
+            )
+            session.add(servico)
+            session.flush()
+            manutencao = Manutencao(
+                data=date.today() - timedelta(days=10),  # longe da janela de data
+                veiculo_id=veiculo.id,
+                km=10_000,
+                status="Finalizada",
+            )
+            session.add(manutencao)
+            session.flush()
+            session.add(
+                ManutencaoServico(manutencao_id=manutencao.id, servico_id=servico.id)
+            )
+
+        with db.unit_of_work() as session:
+            plano = NotificationPlanner(
+                SQLAlchemyNotificationRepository(session), intervalo_padrao_dias=180
+            ).planejar()
+        assert plano.criadas == 1
+
+        with db.unit_of_work() as session:
+            notificacao = session.query(Notificacao).one()
+            assert "km" in (notificacao.conteudo or "").lower()
+            assert notificacao.status == "Pendente"
 
 
 class TestNotificacoesPontaAPonta:

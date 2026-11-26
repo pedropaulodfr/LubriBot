@@ -166,6 +166,25 @@ chave `ProximaManutencao:<manutencao_id>` não existir (ou ser removida).
 | Envia duplicado | mais de uma instância sem lock; conferir `scheduler_ciclo_ignorado_outra_instancia` |
 | Status fora do esperado | coluna precisa ser `varchar(20)` (migração `0002`) |
 
+### 5.5 Notificação por quilometragem
+
+Para ativar:
+
+1. Defina o intervalo em km por serviço (`servicos."intervaloKm"`) **ou** um padrão
+   global em `INTERVALO_KM_PADRAO` no `.env` (ex.: `10000`).
+2. O usuário informa o odômetro pelo menu **🚘 Gerenciar Veículos → 📍 Atualizar KM**.
+   O valor também é atualizado automaticamente quando ele registra uma manutenção.
+3. Quando `kmAtual >= última_km + intervalo`, o ciclo cria o aviso — mesmo que a
+   data ainda não esteja na janela.
+
+Sem `kmAtual` informado ou sem intervalo configurado, a regra por km fica inativa
+(sem falso positivo). Para conferir:
+
+```sql
+SELECT id, placa, "kmAtual", "kmAtualizadoEm" FROM veiculos WHERE status = 'Ativo';
+SELECT id, descricao, "intervaloKm" FROM servicos ORDER BY id;
+```
+
 ## 6. Testes e qualidade
 
 ```bash
@@ -261,5 +280,5 @@ O histórico foi reescrito para remover `migration_data.sql` (PII),
   SelecaoProdutos, MigraçãoBancoDeDados e modernizacao/fase-2);
 - o GitHub mantém objetos antigos em cache por um tempo; para expurgo imediato é
   preciso pedir ao suporte do GitHub. Commits antigos já não são alcançáveis.
-- `migration_data.sql` e `migration.log` continuam **fora** do Git, no disco;
-  recomenda-se apagá-los.
+- `migration_data.sql` e `migration.log` foram **apagados do disco** em 25/11/2026
+  (continham PII/refs antigas e já estavam fora do Git).

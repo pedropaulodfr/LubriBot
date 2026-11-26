@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import base64 as b64
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 
 from telebot.types import ForceReply, ReplyKeyboardRemove
 
@@ -526,6 +526,13 @@ def add_manutencao_handle(bot):
                             manutencao_id=manutencao.id, produto_id=produto_id
                         )
                     )
+
+                # O KM informado na manutenção é o novo odômetro conhecido do veículo.
+                if rascunho.km is not None:
+                    veiculo = session.get(Veiculo, rascunho.veiculo_id)
+                    if veiculo is not None:
+                        veiculo.kmAtual = rascunho.km
+                        veiculo.kmAtualizadoEm = datetime.now(UTC)
         except Exception:
             logger.exception(
                 "falha_ao_registrar_manutencao",

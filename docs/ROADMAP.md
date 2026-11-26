@@ -94,8 +94,9 @@ Pendente (próximo incremento):
 
 ## Ideias para depois (não autorizadas)
 
-- Notificação baseada em quilometragem (o `km` já é coletado, mas não usado para
-  agendamento) — **mudança de regra de negócio**, exige aprovação.
 - Lembretes de documentos (IPVA, licenciamento) — funcionalidade nova.
 - Painel web administrativo — fora do escopo do bot.
 - Migração gradual para banco com pooler/Réplica de leitura se o volume crescer.
+
+> Histórico: a **notificação por quilometragem** era ideia não autorizada e foi
+> aprovada em 25/11/2026 — implementada na migração `0004` (ver ADR-015).

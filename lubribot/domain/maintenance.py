@@ -37,6 +37,9 @@ class MaintenanceSchedule:
     ultima_data: date
     intervalo_dias: int
     proxima_data: date
+    ultima_km: int | None = None
+    intervalo_km: int | None = None
+    proxima_km: int | None = None
 
     @property
     def dias_restantes(self) -> int:
@@ -124,14 +127,85 @@ def descricao_veiculo(
     return base or "veículo"
 
 
+def intervalo_km_efetivo(
+    intervalos: list[int | None] | tuple[int | None, ...] | None,
+    *,
+    padrao: int | None = None,
+) -> int | None:
+    """Maior intervalo em km válido, ou ``padrao`` (que por omissão é None).
+
+    >>> intervalo_km_efetivo([5000, 10000, None])
+    10000
+    >>> intervalo_km_efetivo([]) is None
+    True
+    >>> intervalo_km_efetivo([0, -1]) is None
+    True
+    """
+    validos = [i for i in (intervalos or []) if i is not None and i > 0]
+    if validos:
+        return max(validos)
+    return padrao
+
+
+def calcular_vencimento_km(
+    ultima_km: int | None,
+    intervalos_km: list[int | None] | tuple[int | None, ...] | None,
+    *,
+    padrao: int | None = None,
+) -> int | None:
+    """Odômetro em que a próxima manutenção vence (None se não há dados).
+
+    >>> calcular_vencimento_km(10000, [5000])
+    15000
+    >>> calcular_vencimento_km(None, [5000]) is None
+    True
+    >>> calcular_vencimento_km(10000, [None]) is None
+    True
+    """
+    if ultima_km is None:
+        return None
+    intervalo = intervalo_km_efetivo(intervalos_km, padrao=padrao)
+    if intervalo is None:
+        return None
+    return ultima_km + intervalo
+
+
+def km_vencido(km_atual: int | None, proxima_km: int | None) -> bool:
+    """Indica se o odômetro informado já alcançou (ou passou) o vencimento.
+
+    >>> km_vencido(15000, 15000)
+    True
+    >>> km_vencido(14999, 15000)
+    False
+    >>> km_vencido(None, 15000)
+    False
+    """
+    if km_atual is None or proxima_km is None:
+        return False
+    return km_atual >= proxima_km
+
+
 def montar_conteudo_notificacao(
     nome_usuario: str | None,
     veiculo: str,
-    proxima_data: date,
+    proxima_data: date | None = None,
+    *,
+    proxima_km: int | None = None,
 ) -> str:
-    """Mensagem enviada ao usuário (mesmo tom do sistema original)."""
+    """Mensagem enviada ao usuário, por data e/ou por quilometragem."""
     saudacao = f"Ola, {nome_usuario}!" if nome_usuario else "Ola!"
-    return (
-        f"{saudacao} A data da proxima manutencao do seu veiculo "
-        f"{veiculo} e: {proxima_data.strftime('%d/%m/%Y')}."
-    )
+    partes: list[str] = []
+
+    if proxima_data is not None:
+        partes.append(
+            f"A data da proxima manutencao do seu veiculo {veiculo} e: "
+            f"{proxima_data.strftime('%d/%m/%Y')}."
+        )
+    if proxima_km is not None:
+        partes.append(
+            f"O seu veiculo {veiculo} atingiu {proxima_km:,} km,"
+            " dentro do intervalo de manutencao recomendado.".replace(",", ".")
+        )
+    if not partes:
+        partes.append(f"Esta na hora de revisar o seu veiculo {veiculo}.")
+    return f"{saudacao} {' '.join(partes)}"

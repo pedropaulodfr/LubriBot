@@ -32,6 +32,7 @@ def ProcessarNotificacoes() -> PlanningResult:
         planner = NotificationPlanner(
             SQLAlchemyNotificationRepository(session),
             intervalo_padrao_dias=settings.intervalo_manutencao_padrao_dias,
+            intervalo_km_padrao=settings.intervalo_km_padrao,
         )
         return planner.planejar()
 

@@ -138,6 +138,30 @@ criados no início do fluxo e descartados no fim; gravação em transação úni
 **Decisão:** alargar na migração `0002` (idempotente) e documentar no modelo.
 **Consequência:** o fluxo de cancelamento passa a funcionar de fato.
 
+## ADR-015 — Notificação por quilometragem (autorizada em 25/11/2026)
+
+**Contexto:** só havia alerta por data. O KM era coletado nas manutenções, mas não
+usado para agendamento, e não existia odômetro corrente.
+**Decisão:**
+- `servicos.intervaloKm` (opcional) define o intervalo em km por serviço;
+  `INTERVALO_KM_PADRAO` cobre serviços sem valor; ausente = regra desligada.
+- `veiculos.kmAtual` guarda o odômetro informado — atualizado pelo novo fluxo
+  "📍 Atualizar KM" ou automaticamente ao registrar manutenção (usa o KM da nota).
+- O aviso dispara quando `kmAtual >= ultima_km + max(intervaloKm)` **ou** quando a
+  data entra na janela. Continua sendo um aviso por manutenção (chave única).
+**Consequência:** a regra por km é opt-in e auditável; sem odômetro informado ela
+simplesmente não dispara, sem gerar falso positivo.
+
+## ADR-016 — Execução em produção a partir do `.env` local
+
+**Contexto:** não há servidor do J4 Core provisionado ainda; o banco real é o
+Supabase migrado em 25/11/2026.
+**Decisão:** `AMBIENTE=PRODUÇÃO` no `.env`, selecionando `TOKEN` e
+`STRING_CONNECTION` (pooler de sessão). Quando o servidor existir, o mesmo arquivo
+(ou as mesmas variáveis) deve ser replicado lá, com permissão restrita.
+**Consequência:** o processo local passa a falar com produção; iniciar `main.py`
+nesta máquina assume o polling do bot e pode enviar notificações reais.
+
 ## ADR-014 — `DOCUMENTACAO.md` mantido como histórico
 
 **Contexto:** o documento antigo (756 linhas) descreve arquitetura, fluxos e uma

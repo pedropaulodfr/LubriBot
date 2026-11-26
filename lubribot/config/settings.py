@@ -82,6 +82,11 @@ class Settings(BaseSettings):
         le=3650,
         validation_alias="INTERVALO_MANUTENCAO_DIAS",
     )
+    # Intervalo padrão em km quando o serviço não define ``intervaloKm``.
+    # Vazio/ausente = notificação por km desabilitada (comportamento seguro).
+    intervalo_km_padrao: int | None = Field(
+        default=None, ge=1, le=500_000, validation_alias="INTERVALO_KM_PADRAO"
+    )
     notificacoes_max_tentativas: int = Field(default=5, ge=1, le=50)
     notificacoes_backoff_base_segundos: int = Field(default=60, ge=1)
 

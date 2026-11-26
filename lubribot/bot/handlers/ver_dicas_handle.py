@@ -1,5 +1,4 @@
 import os, datetime
-import google.generativeai as genai
 
 from telebot.types import ReplyKeyboardRemove,  InlineKeyboardMarkup, InlineKeyboardButton
 from dotenv import load_dotenv, find_dotenv
@@ -8,6 +7,7 @@ from services.veiculos_service import get_veiculos_by_usuario
 from lubribot.bot.keyboards.menu_principal_keyboard import menu_principal
 from lubribot.bot.keyboards.veiculos_keyboard import veiculos_keyboard
 from prompts.dicas_prompt import get_dica_maintenance_prompt
+from lubribot.integrations.gemini import get_gemini_client
 from lubribot.utils.sanitize import sanitizar_html
 from lubribot.utils.timing import medir
 from lubribot.utils.envio_mensagem import send_and_delete
@@ -18,8 +18,6 @@ load_dotenv(find_dotenv())
 
 session = _Session()
 
-genai.configure(api_key=os.getenv("GEMINI_ApiKey"))
-modelo = genai.GenerativeModel("gemini-2.5-flash")
 
 LIMITE_DICAS_FALLBACK = 10
 
@@ -112,21 +110,21 @@ def ver_dica_handle(bot):
             bot.send_chat_action(message.chat.id, "typing")
             
             with medir("gemini_dica", usuario_id=usuario.id):
-                resposta = modelo.generate_content(get_dica_maintenance_prompt(veiculo))
+                resposta = get_gemini_client().gerar(get_dica_maintenance_prompt(veiculo))
 
             veiculo_id = session.query(Veiculo).filter(Veiculo.placa == placa, Veiculo.usuario_id == usuario.id).first().id
             if (not dica):
                 dica = VeiculoDica(
                     veiculo_id = veiculo_id,
-                    texto = resposta.text,
+                    texto = resposta,
                     datacriacao = datetime.date.today()
                 )
                 session.add(dica)
             else:
-                dica.texto = resposta.text
+                dica.texto = resposta
                 dica.datacriacao = datetime.date.today()
             session.commit()
 
-            bot.send_message(message.chat.id, sanitizar_html(resposta.text), reply_markup=menu_principal(), parse_mode='HTML')        
+            bot.send_message(message.chat.id, sanitizar_html(resposta), reply_markup=menu_principal(), parse_mode='HTML')        
         except:
             send_and_delete(bot, message.chat.id, "😕 Ocorreu um erro ao tentar gerar dica. Por favor, tente novamente!", reply_markup=menu_principal())        

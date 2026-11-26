@@ -1,0 +1,17 @@
+# Perfil "lite" para Android/Termux (ARM 32 bits, Python 3.14).
+#
+# Por que não o requirements.txt completo:
+# - psycopg2-binary: sem wheel para armv7 -> usamos pg8000 (puro Python);
+# - grpcio (google-generativeai): sem wheel para armv7 -> Gemini via REST;
+# - pydantic-core: sem wheel para armv7 -> configuração "lite" sem pydantic.
+#
+# Instalação no Termux:
+#   python -m pip install -r requirements-device.txt
+
+SQLAlchemy>=2.0.44
+boto3>=1.41
+pg8000>=1.31
+pyTelegramBotAPI>=4.26
+python-dotenv>=1.0
+requests>=2.32
+vpic-api>=0.7

@@ -14,7 +14,6 @@ from __future__ import annotations
 import datetime
 import os
 
-import google.generativeai as genai
 from dotenv import find_dotenv, load_dotenv
 from telebot.types import ForceReply
 
@@ -25,6 +24,7 @@ from lubribot.bot.conversation_store import get_registry
 from lubribot.config.settings import get_settings
 from lubribot.database.runtime import get_database
 from lubribot.models import Usuario, Veiculo, VeiculoDiagnosticos
+from lubribot.integrations.gemini import get_gemini_client
 from lubribot.utils.logging import get_logger
 from lubribot.utils.timing import medir
 from lubribot.utils.sanitize import sanitizar_html
@@ -35,8 +35,6 @@ from lubribot.utils.envio_mensagem import send_and_delete
 logger = get_logger(__name__)
 
 load_dotenv(find_dotenv())
-genai.configure(api_key=os.getenv("GEMINI_ApiKey"))
-modelo = genai.GenerativeModel("gemini-2.5-flash")
 
 LIMITE_DIARIO_FALLBACK = 3
 
@@ -193,10 +191,10 @@ def ver_diagnostico_handle(bot):
         try:
             bot.send_chat_action(message.chat.id, "typing")
             with medir("gemini_diagnostico", usuario_id=estado["usuario_id"]):
-                resposta = modelo.generate_content(
+                resposta = get_gemini_client().gerar(
                     get_diagnostico_prompt(estado["veiculo_texto"], problema)
                 )
-            texto = (resposta.text or "").strip()
+            texto = (resposta or "").strip()
             if not texto:
                 raise RuntimeError("resposta vazia da IA")
         except Exception:

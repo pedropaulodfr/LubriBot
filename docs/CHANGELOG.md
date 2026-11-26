@@ -1,5 +1,30 @@
 # Changelog
 
+## [2.7.0] — 26/11/2026 — Bot rodando no J4 Core (Android/Termux via ADB)
+
+### Adicionado
+- **Perfil lite** para ARM 32 bits (Android/Termux), escolhido automaticamente:
+  - `settings_lite.py`: configuração sem Pydantic (não há wheel de
+    `pydantic-core` para armv7), com as mesmas regras e interface;
+  - `database/engine.py`: usa `pg8000` quando `psycopg2` não existe, com TLS;
+  - `integrations/gemini.py`: Gemini via **REST** quando o SDK (`grpcio`) não
+    está disponível — os handlers passaram a usar essa camada;
+  - `requirements-device.txt` com as dependências compatíveis.
+- `scripts/deploy_device.ps1` (`-Install/-Start/-Stop/-Status/-Logs/-UpdateEnv`)
+  e `scripts/dry_run_device.py` (simulação de notificações no aparelho).
+- `deploy/ANDROID_TERMUX.md` com passo a passo, limitações e TLS.
+- Health check tolerante a porta ocupada: falha de bind não derruba mais o bot.
+
+### Alterado
+- `app.py` não morre se `/ping` não puder subir; registra erro e segue.
+- `DB_SSL_CA` / `DB_SSL_VERIFY` controlam a validação TLS do banco.
+
+### Validação no aparelho
+- Galaxy J4 Core (SM-J410G, Android 8.1, armv7, 858 MB RAM), Termux + Python 3.14.
+- Processo único, `GET /ping` OK e ciclo de notificações executado
+  (3 veículos avaliados, 0 enviados — nenhuma manutenção vencida).
+- Conexão real no Supabase: migração `0004`, 1 usuário, driver `pg8000`.
+
 ## [2.6.0] — 25/11/2026 — Pacote de deploy para o J4 Core
 
 ### Adicionado

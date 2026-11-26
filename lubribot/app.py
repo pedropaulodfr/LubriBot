@@ -96,8 +96,19 @@ class Application:
         return self.scheduler
 
     def iniciar_http(self) -> None:
-        if self.settings.http_habilitado:
+        """Sobe o health check; falha de porta não derruba o bot."""
+        if not self.settings.http_habilitado:
+            return
+        try:
             self.http = _iniciar_http(self.settings)
+        except OSError as exc:
+            # Porta ocupada (ex.: instância anterior ainda viva) não pode impedir
+            # o polling: o bot continua operando sem o endpoint de saúde.
+            logger.error(
+                "http_healthcheck_indisponivel",
+                extra={"porta": self.settings.http_port, "erro": str(exc)},
+            )
+            self.http = None
 
     def encerrar(self) -> None:
         self.stop_event.set()

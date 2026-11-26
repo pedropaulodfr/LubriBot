@@ -1,7 +1,16 @@
 # Deploy do LubriBot no servidor (J4 Core)
 
 O bot é um processo único (long polling + job de notificações + health check em
-`GET /ping`). Há dois caminhos; escolha conforme o servidor.
+`GET /ping`). Há três caminhos; escolha conforme o ambiente.
+
+| Ambiente | Caminho | Guia |
+|---|---|---|
+| Android (J4 Core / Termux) | adb + perfis "lite" | [ANDROID_TERMUX.md](ANDROID_TERMUX.md) |
+| Linux VPS | systemd + instalador | opção A abaixo |
+| Docker | imagem + compose | opção B abaixo |
+
+> **Estado atual:** o bot está rodando no Galaxy J4 Core via Termux (perfil lite:
+> pg8000, Gemini REST, config sem Pydantic), conforme `ANDROID_TERMUX.md`.
 
 ## Opção A — Linux com systemd (recomendado para VPS)
 

@@ -78,6 +78,17 @@ Status: ✅ concluído · 🚧 em andamento · ⬜ pendente · 🧱 bloqueado
 | T-603 | Script de release (tar.gz + SHA256, sem segredos) | Operação | `scripts/build_release.ps1` | ✅ |
 | T-604 | Instalar e validar no servidor J4 Core | Operação | servidor | 🧱 bloqueado (sem acesso) |
 
+## Fase 8 (entregue) — bot no J4 Core
+
+| ID | Tarefa | Dono | Escopo | Status |
+|---|---|---|---|---|
+| T-701 | Perfil lite (config sem Pydantic) | Python | `lubribot/config/` | ✅ |
+| T-702 | Driver `pg8000` com TLS | Banco | `lubribot/database/engine.py` | ✅ |
+| T-703 | Gemini via REST sem `grpcio` | Python | `lubribot/integrations/gemini.py` | ✅ |
+| T-704 | Deploy e operação via ADB/Termux | Operação | `scripts/deploy_device.ps1` | ✅ |
+| T-705 | Bot rodando no aparelho (polling + job) | Operação | J4 Core | ✅ validado |
+| T-706 | Autostart após reboot (Termux:Boot) | Operação | aparelho | ⬜ depende de instalar o app |
+
 ## Fase 3.1 (próximo incremento)
 
 | ID | Tarefa | Dono | Depende de | Complexidade |
